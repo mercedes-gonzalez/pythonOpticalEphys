@@ -1,2 +1,2 @@
-# python-auto-cleaning
-Python based auto-cleaning GUI for patch clamp
+# pythonOpticalEphys (with auto-cleaning) 
+Python based GUI for auto-cleaning and all optical electrophysiology.
