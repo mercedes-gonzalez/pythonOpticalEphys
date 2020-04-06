@@ -34,6 +34,7 @@ wash_colors = ['salmon','firebrick1','firebrick2','firebrick3','firebrick4']
 clean_colors = ['sandybrown','DarkOrange1','DarkOrange2','DarkOrange3','DarkOrange4']
 locations_colors = ['LightGoldenRod1','goldenrod1','goldenrod2','goldenrod3','goldenrod4']
 settings_colors = ['pale green','green','green1','green3','green4']
+controls_colors = ['lavender','MediumPurple1','MediumPurple2','MediumPurple3','MediumPurple4']
 entryc = 0
 btnc = 1
 boxc = 2
@@ -70,12 +71,18 @@ class ephysTool(tk.Frame):
         self.CLEAN_TAB = tk.Frame(self.tabs,bg='snow3',relief=styles[sty],borderwidth=size)
         self.tabs.add(self.CLEAN_TAB,text='AUTO-CLEANING')
         
+        self.CONTROLS_FRAME = tk.Frame(self.CLEAN_TAB,bg=controls_colors[framec],relief=styles[sty],borderwidth=size)
         self.WASH_FRAME = tk.Frame(self.CLEAN_TAB,bg=wash_colors[framec],relief=styles[sty],borderwidth=size)
         self.CLEAN_FRAME = tk.Frame(self.CLEAN_TAB,bg=clean_colors[framec],relief=styles[sty],borderwidth=size)
         self.LOCATIONS_FRAME = tk.Frame(self.CLEAN_TAB,bg=locations_colors[framec],relief=styles[sty],borderwidth=size)
         self.SETTINGS_FRAME = tk.Frame(self.CLEAN_TAB,bg=settings_colors[framec],relief=styles[sty],borderwidth=size)
 
-        # WASH FRAME BUTTONS
+        # CONTROLS FRAME WIDGETS
+        self.controls_title = tk.Label(self.CONTROLS_FRAME, text="CONTROLS",font=(title_str),bg=controls_colors[framec])
+        self.clean_btn = tk.Button(self.CONTROLS_FRAME,text='CLEAN',bg=controls_colors[btnc])
+
+
+        # WASH FRAME WIDGETS
         self.wash_title = tk.Label(self.WASH_FRAME, text="WASH",font=(title_str),bg=wash_colors[framec])
         
         self.wash_time_box = tk.Frame(self.WASH_FRAME,bg=wash_colors[boxc],relief=styles[1],borderwidth=1)
@@ -268,6 +275,11 @@ class ephysTool(tk.Frame):
         # DEFINE OPTOEPHYS FRAMES
         self.OPTOEPHYS_TAB = tk.Frame(self.tabs,bg='snow3',relief=styles[sty],borderwidth=size)
         self.tabs.add(self.OPTOEPHYS_TAB,text='OPTIX + EPHYS')
+
+        # CONTROLS FRAME PACKING
+        self.CONTROLS_FRAME.pack(side=tk.TOP,fill=tk.X,expand=0)
+        self.controls_title.pack(side=tk.TOP,fill=tk.X,expand=0)
+        self.clean_btn.pack(side=tk.LEFT,fill=tk.Y,expand=0)
 
         # WASH FRAME PACKING
         self.WASH_FRAME.pack(side=tk.LEFT,fill=tk.Y,expand=0)
