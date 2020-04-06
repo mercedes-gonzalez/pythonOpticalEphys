@@ -80,6 +80,19 @@ class ephysTool(tk.Frame):
         # CONTROLS FRAME WIDGETS
         self.controls_title = tk.Label(self.CONTROLS_FRAME, text="CONTROLS",font=(title_str),bg=controls_colors[framec])
         self.clean_btn = tk.Button(self.CONTROLS_FRAME,text='CLEAN',bg=controls_colors[btnc])
+        
+        self.protocol_box = tk.Frame(self.CONTROLS_FRAME,bg=controls_colors[boxc],relief=styles[1],borderwidth=1)
+        self.protocol = tk.IntVar()
+        self.protocol.set(1)
+        self.protocol_label = tk.Label(self.CONTROLS_FRAME, text="Protocol:",font=(label_str),bg=controls_colors[framec])
+        self.clean_protocol_btn = tk.Radiobutton(self.CONTROLS_FRAME,text="Clean",variable=self.protocol,value=0,bg=controls_colors[framec])
+        self.sham_protocol_btn = tk.Radiobutton(self.CONTROLS_FRAME,text="Sham",variable=self.protocol,value=1,bg=controls_colors[framec])
+
+        self.duration_value = tk.DoubleVar()
+        self.duration_value.set(20) # default capactiance
+        self.duration_label = tk.Label(self.CONTROLS_FRAME, text="Break In Duration [s]:",font=(label_str),bg=controls_colors[framec])
+        vcmd = self.master.register(self.validate) # we have to wrap the command
+        self.duration_entry = tk.Entry(self.CONTROLS_FRAME, text=self.duration_value,validate="key", validatecommand=(vcmd, '%P'),bg=controls_colors[entryc])
 
 
         # WASH FRAME WIDGETS
@@ -276,10 +289,23 @@ class ephysTool(tk.Frame):
         self.OPTOEPHYS_TAB = tk.Frame(self.tabs,bg='snow3',relief=styles[sty],borderwidth=size)
         self.tabs.add(self.OPTOEPHYS_TAB,text='OPTIX + EPHYS')
 
+# _____________________________________________________
+# _____________________________________________________
+#               PACKING 
+
         # CONTROLS FRAME PACKING
         self.CONTROLS_FRAME.pack(side=tk.TOP,fill=tk.X,expand=0)
-        self.controls_title.pack(side=tk.TOP,fill=tk.X,expand=0)
+        self.controls_title.pack(side=tk.TOP,fill=tk.X,expand=1)
         self.clean_btn.pack(side=tk.LEFT,fill=tk.Y,expand=0)
+        
+        
+        self.protocol_box.pack(side=tk.LEFT,fill=tk.Y,expand=0)
+        self.protocol_label.pack(side=tk.LEFT,fill=tk.Y,expand=0)
+        self.clean_protocol_btn.pack(side=tk.LEFT,fill=tk.Y,expand=0)
+        self.sham_protocol_btn.pack(side=tk.LEFT,fill=tk.Y,expand=0)
+        self.duration_label.pack(side=tk.BOTTOM,fill=tk.Y,expand=0)
+        self.duration_entry.pack(side=tk.BOTTOM,fill=tk.Y,expand=0)
+
 
         # WASH FRAME PACKING
         self.WASH_FRAME.pack(side=tk.LEFT,fill=tk.Y,expand=0)
@@ -382,6 +408,16 @@ class ephysTool(tk.Frame):
 # Define GUI Functions
     def popup_help(self):
         showinfo("Help", instruction_text)
+
+    def validate(self, new_text):
+        if not new_text: # the field is being cleared
+            self.entered_number = 0
+            return True
+        try:
+            self.entered_number = int(new_text)
+            return True
+        except ValueError:
+            return False
 
 root = tk.Tk()
 root.geometry("800x600+50+100") #width x height + x and y screen dims
