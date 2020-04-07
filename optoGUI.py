@@ -470,21 +470,26 @@ my_gui = ephysTool(root)
 root.mainloop()
 
 '''
-    TODO: CLEANING
-    - sutter driver working
-    - save position
-    - move to position
-    - set protocol params
-    - set pressure
-    - CLEAN button
-    - SAVE protocol
-    - 
-    - 
+    TODO: WITHOUT SUTTER
+    - read times/pressures from text() boxes from a list
+    - save protocols (to csv)
+    - load protocols (from csv)
+    - set locations
+    - load locations (from csv)
+    - save locations (to csv)
+    - calculate retracting movements
+    - load available COM ports and import to control list
+    - determine multiclamp handle
+    - save default settings
+    - load default settings
+
+
 
     TODO: OPTICAL EPHYS
     - 
 
     FINISHED: 
+    - looks pretty good. 
     
 
 '''
