@@ -483,6 +483,13 @@ root.mainloop()
     - save default settings
     - load default settings
 
+    TODO: WITH SUTTER
+    - does driver from github work? 
+    - will it work without the actual manip? 
+    - get position
+    - move to position
+    - local coordinate frame necessary?? 
+
 
 
     TODO: OPTICAL EPHYS
