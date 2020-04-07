@@ -46,16 +46,11 @@ label_str = 'Arial 9 bold'
 styles = ['flat','raised','sunken','groove','ridge']
 sty = 3
 size = 3
+xpad = 5
+ypad = 2
 NULL_DIR_STR = "* SET DIRECTORY *"
 instruction_text = """
-1. [Select] to choose directory with .abf files
-2. [Save] saves data shown on plot in a .csv located in a specified folder
-3. [Reset] clears all data and plots.
-
-NOTE:
-- Auto mode plots all files in the directory
-- Manual mode only plots selected files
-- Use tool bar to interact with plot
+1. Insert helpful instructions here. 
 """
 # Define GUI class
 class ephysTool(tk.Frame):
@@ -81,19 +76,26 @@ class ephysTool(tk.Frame):
         self.controls_title = tk.Label(self.CONTROLS_FRAME, text="CONTROLS",font=(title_str),bg=controls_colors[framec])
         self.clean_btn = tk.Button(self.CONTROLS_FRAME,text='CLEAN',bg=controls_colors[btnc])
         
-        self.protocol_box = tk.Frame(self.CONTROLS_FRAME,bg=controls_colors[boxc],relief=styles[1],borderwidth=1)
+        self.sep1 = ttk.Separator(self.CONTROLS_FRAME, orient="horizontal")
+        
+        self.protocol_box = tk.Frame(self.CONTROLS_FRAME,bg=controls_colors[framec],relief=styles[sty],borderwidth=size)
         self.protocol = tk.IntVar()
         self.protocol.set(1)
         self.protocol_label = tk.Label(self.CONTROLS_FRAME, text="Protocol:",font=(label_str),bg=controls_colors[framec])
         self.clean_protocol_btn = tk.Radiobutton(self.CONTROLS_FRAME,text="Clean",variable=self.protocol,value=0,bg=controls_colors[framec])
         self.sham_protocol_btn = tk.Radiobutton(self.CONTROLS_FRAME,text="Sham",variable=self.protocol,value=1,bg=controls_colors[framec])
-
+        
+        self.sep2 = ttk.Separator(self.CONTROLS_FRAME, orient="horizontal")
+        
         self.duration_value = tk.DoubleVar()
         self.duration_value.set(20) # default capactiance
         self.duration_label = tk.Label(self.CONTROLS_FRAME, text="Break In Duration [s]:",font=(label_str),bg=controls_colors[framec])
         vcmd = self.master.register(self.validate) # we have to wrap the command
         self.duration_entry = tk.Entry(self.CONTROLS_FRAME, text=self.duration_value,validate="key", validatecommand=(vcmd, '%P'),bg=controls_colors[entryc])
 
+        self.sep3 = ttk.Separator(self.CONTROLS_FRAME, orient="horizontal")
+
+        self.breakin_btn = tk.Button(self.CONTROLS_FRAME,text='BREAK IN',bg=controls_colors[btnc])
 
         # WASH FRAME WIDGETS
         self.wash_title = tk.Label(self.WASH_FRAME, text="WASH",font=(title_str),bg=wash_colors[framec])
@@ -112,8 +114,8 @@ class ephysTool(tk.Frame):
 
         self.prewash = tk.IntVar()
         self.prewash.set(0)
-        self.wash_controls_box = tk.Frame(self.WASH_FRAME,bg=wash_colors[boxc],relief=styles[1],borderwidth=1)
-        self.prewash_btn = tk.Checkbutton(self.wash_controls_box,text='PREWASH',bg=wash_colors[btnc],selectcolor=wash_colors[4],indicatoron=1,variable=self.prewash,onvalue=1,offvalue=0)
+        self.wash_controls_box = tk.Frame(self.WASH_FRAME,bg=wash_colors[boxc],relief=styles[sty],borderwidth=1)
+        self.prewash_btn = tk.Checkbutton(self.wash_controls_box,text='PREWASH',bg=wash_colors[boxc],selectcolor=wash_colors[3],indicatoron=1,variable=self.prewash,onvalue=1,offvalue=0)
         self.save_wash_btn = tk.Button(self.wash_controls_box,text='SAVE PROTOCOL',bg=wash_colors[btnc])
         self.load_wash_btn = tk.Button(self.wash_controls_box,text='LOAD PROTOCOL',bg=wash_colors[btnc])
 
@@ -139,11 +141,11 @@ class ephysTool(tk.Frame):
 
         # LOCATIONS FRAME WIDGETS
         self.locations_title = tk.Label(self.LOCATIONS_FRAME, text="LOCATIONS",font=(title_str),bg=locations_colors[framec])
-        self.save_locations_btn = tk.Button(self.LOCATIONS_FRAME,text='SAVE LOCATIONS',bg=locations_colors[btnc])
-        self.load_locations_btn = tk.Button(self.LOCATIONS_FRAME,text='LOAD LOCATIONS',bg=locations_colors[btnc])
+        self.save_locations_btn = tk.Button(self.LOCATIONS_FRAME,text='SAVE LOCATIONS',relief=styles[1],bg=locations_colors[btnc])
+        self.load_locations_btn = tk.Button(self.LOCATIONS_FRAME,text='LOAD LOCATIONS',relief=styles[1],bg=locations_colors[btnc])
 
         # Sample location
-        self.sample_location_box = tk.Frame(self.LOCATIONS_FRAME,bg=locations_colors[boxc],relief=styles[1],borderwidth=1)
+        self.sample_location_box = tk.Frame(self.LOCATIONS_FRAME,bg=locations_colors[framec],relief=styles[0],borderwidth=0)
         self.sample_location_label = tk.Label(self.sample_location_box, text="Sample Location:",font=(label_str),bg=locations_colors[boxc])
         
         # Sample location x
@@ -166,8 +168,8 @@ class ephysTool(tk.Frame):
 
         # ------------------------------------
         # Above baths location
-        self.abovebath_location_box = tk.Frame(self.LOCATIONS_FRAME,bg=locations_colors[entryc],relief=styles[1],borderwidth=1)
-        self.abovebath_location_label = tk.Label(self.abovebath_location_box, text="Above Bath Location:",font=(label_str),bg=locations_colors[boxc])
+        self.abovebath_location_box = tk.Frame(self.LOCATIONS_FRAME,bg=locations_colors[entryc],relief=styles[0],borderwidth=1)
+        self.abovebath_location_btn = tk.Button(self.abovebath_location_box, text="Above Bath Location:",font=(label_str),bg=locations_colors[boxc])
         
         # Above baths location x
         self.abovebath_x_value = tk.IntVar()
@@ -189,8 +191,8 @@ class ephysTool(tk.Frame):
 
         # ------------------------------------
         # Clean bath location
-        self.cleanbath_location_box = tk.Frame(self.LOCATIONS_FRAME,bg=locations_colors[entryc],relief=styles[1],borderwidth=1)
-        self.cleanbath_location_label = tk.Label(self.cleanbath_location_box, text="Clean Bath Location:",font=(label_str),bg=locations_colors[boxc])
+        self.cleanbath_location_box = tk.Frame(self.LOCATIONS_FRAME,bg=locations_colors[entryc],relief=styles[0],borderwidth=1)
+        self.cleanbath_location_btn = tk.Button(self.cleanbath_location_box, text="Clean Bath Location:",font=(label_str),bg=locations_colors[boxc])
         
         # Clean bath location x
         self.cleanbath_x_value = tk.IntVar()
@@ -213,7 +215,7 @@ class ephysTool(tk.Frame):
         # ------------------------------------
         # Wash bath location
         self.washbath_location_box = tk.Frame(self.LOCATIONS_FRAME,bg=locations_colors[entryc],relief=styles[1],borderwidth=1)
-        self.washbath_location_label = tk.Label(self.washbath_location_box, text="Wash Bath Location:",font=(label_str),bg=locations_colors[boxc])
+        self.washbath_location_btn = tk.Button(self.washbath_location_box, text="Wash Bath Location:",font=(label_str),bg=locations_colors[boxc])
         
         # Clean bath location x
         self.washbath_x_value = tk.IntVar()
@@ -281,10 +283,30 @@ class ephysTool(tk.Frame):
         # ------------------------------------
         # SETTINGS FRAME WIDGETS
         self.settings_title = tk.Label(self.SETTINGS_FRAME, text="SETTINGS",font=(title_str),bg=settings_colors[framec])
-        self.actuatortype_choice = ttk.Combobox(self.SETTINGS_FRAME,values=['Sutter','Scientifica'])
-        self.actuatortype_choice.configure(background=settings_colors[entryc])
-        self.actuator_label = tk.Label(self.SETTINGS_FRAME, text="Actuator Type: ",font=(label_str),bg=settings_colors[framec])
+        
+        # Actuator type
+        self.actuator_box = tk.Frame(self.SETTINGS_FRAME,bg=settings_colors[framec],relief=styles[sty],borderwidth=size)
+        self.actuator_value = tk.IntVar()
+        self.actuator_value.set(0)
+        self.actuator_label = tk.Label(self.actuator_box, text="Actuator Type:",font=(label_str),bg=settings_colors[framec])
+        self.sutter_btn = tk.Radiobutton(self.actuator_box,text="Sutter",variable=self.actuator_value,value=0,bg=settings_colors[framec])
+        self.scientifica_btn = tk.Radiobutton(self.actuator_box,text="Scientifica",variable=self.actuator_value,value=1,bg=settings_colors[framec])
+        
+        # Manipulator COM
+        self.COM_box = tk.Frame(self.SETTINGS_FRAME,bg=settings_colors[framec],relief=styles[sty],borderwidth=size)
+        self.COMS_list = ['TEST1','TEST2','GET COMS WORKING']
+        self.manip_COM_combo = ttk.Combobox(self.COM_box,values=self.COMS_list)
+        self.COM_label = tk.Label(self.COM_box, text="Manipulator COM: ",font=(label_str),bg=settings_colors[framec])
 
+        # Multiclamp handle
+        self.multiclamp_box = tk.Frame(self.SETTINGS_FRAME,bg=settings_colors[framec],relief=styles[sty],borderwidth=size)
+        self.multiclamp_handle = tk.IntVar()
+        self.multiclamp_handle.set(0)
+        self.multiclamp_entry = tk.Entry(self.multiclamp_box, text=self.multiclamp_handle,validate="key", validatecommand=(vcmd, '%P'),bg=settings_colors[entryc])
+        self.multiclamp_label = tk.Label(self.multiclamp_box, text="Multiclamp Handle: ",font=(label_str),bg=settings_colors[framec])
+        
+        self.help_btn = tk.Button(self.SETTINGS_FRAME,text='Help',bg=settings_colors[btnc],command=self.popup_help)
+        
         # DEFINE OPTOEPHYS FRAMES
         self.OPTOEPHYS_TAB = tk.Frame(self.tabs,bg='snow3',relief=styles[sty],borderwidth=size)
         self.tabs.add(self.OPTOEPHYS_TAB,text='OPTIX + EPHYS')
@@ -296,17 +318,24 @@ class ephysTool(tk.Frame):
         # CONTROLS FRAME PACKING
         self.CONTROLS_FRAME.pack(side=tk.TOP,fill=tk.X,expand=0)
         self.controls_title.pack(side=tk.TOP,fill=tk.X,expand=1)
-        self.clean_btn.pack(side=tk.LEFT,fill=tk.Y,expand=0)
+        self.clean_btn.pack(side=tk.LEFT,fill=tk.BOTH,expand=1,padx=xpad,pady=ypad)
         
+        self.sep1.pack(side=tk.LEFT, fill=tk.BOTH,padx=xpad,pady=ypad)
         
-        self.protocol_box.pack(side=tk.LEFT,fill=tk.Y,expand=0)
+        self.protocol_box.pack(side=tk.LEFT,fill=tk.BOTH,expand=0,padx=xpad,pady=ypad)
         self.protocol_label.pack(side=tk.LEFT,fill=tk.Y,expand=0)
         self.clean_protocol_btn.pack(side=tk.LEFT,fill=tk.Y,expand=0)
         self.sham_protocol_btn.pack(side=tk.LEFT,fill=tk.Y,expand=0)
-        self.duration_label.pack(side=tk.BOTTOM,fill=tk.Y,expand=0)
-        self.duration_entry.pack(side=tk.BOTTOM,fill=tk.Y,expand=0)
+        
+        self.sep2.pack(side=tk.LEFT, fill=tk.BOTH,padx=xpad,pady=ypad)
+        
+        self.duration_label.pack(side=tk.LEFT,fill=tk.Y,expand=0)
+        self.duration_entry.pack(side=tk.LEFT,fill=tk.Y,expand=0)
 
+        self.sep3.pack(side=tk.LEFT, fill=tk.BOTH,padx=xpad,pady=ypad)
 
+        self.breakin_btn.pack(side=tk.LEFT,fill=tk.BOTH,expand=0,padx=xpad,pady=ypad)
+        
         # WASH FRAME PACKING
         self.WASH_FRAME.pack(side=tk.LEFT,fill=tk.Y,expand=0)
         self.wash_title.pack(side=tk.TOP,fill=tk.X,expand=0)
@@ -347,7 +376,7 @@ class ephysTool(tk.Frame):
         self.locations_title.pack(side=tk.TOP,fill=tk.X,expand=0)
 
         # Sample location packing
-        self.sample_location_box.pack(side=tk.TOP,fill=tk.BOTH,expand=0)
+        self.sample_location_box.pack(side=tk.TOP,fill=tk.BOTH,expand=1,padx=xpad,pady=ypad)
         self.sample_location_label.pack(side=tk.LEFT,fill=tk.BOTH,expand=0)
         self.sample_x_display.pack(side=tk.LEFT,fill=tk.BOTH,expand=1)
         self.sample_y_display.pack(side=tk.LEFT,fill=tk.BOTH,expand=1)
@@ -355,31 +384,32 @@ class ephysTool(tk.Frame):
         self.sample_go_btn.pack(side=tk.RIGHT,fill=tk.BOTH,expand=0)
         
         # Above bath packing
-        self.abovebath_location_box.pack(side=tk.TOP,fill=tk.X,expand=0)
-        self.abovebath_location_label.pack(side=tk.LEFT,fill=tk.BOTH,expand=0)
+        self.abovebath_location_box.pack(side=tk.TOP,fill=tk.X,expand=1,padx=xpad,pady=ypad)
+        self.abovebath_location_btn.pack(side=tk.LEFT,fill=tk.BOTH,expand=0)
         self.abovebath_x_display.pack(side=tk.LEFT,fill=tk.BOTH,expand=1)
         self.abovebath_y_display.pack(side=tk.LEFT,fill=tk.BOTH,expand=1)
         self.abovebath_z_display.pack(side=tk.LEFT,fill=tk.BOTH,expand=1)
         self.abovebath_go_btn.pack(side=tk.RIGHT,fill=tk.BOTH,expand=0)
         
         # Cleaning bath location packing
-        self.cleanbath_location_box.pack(side=tk.TOP,fill=tk.X,expand=0)
-        self.cleanbath_location_label.pack(side=tk.LEFT,fill=tk.BOTH,expand=0)
+        self.cleanbath_location_box.pack(side=tk.TOP,fill=tk.X,expand=1,padx=xpad,pady=ypad)
+        self.cleanbath_location_btn.pack(side=tk.LEFT,fill=tk.BOTH,expand=0)
         self.cleanbath_x_display.pack(side=tk.LEFT,fill=tk.BOTH,expand=1)
         self.cleanbath_y_display.pack(side=tk.LEFT,fill=tk.BOTH,expand=1)
         self.cleanbath_z_display.pack(side=tk.LEFT,fill=tk.BOTH,expand=1)
         self.cleanbath_go_btn.pack(side=tk.RIGHT,fill=tk.BOTH,expand=0)
         
         # Wash bath location packing
-        self.washbath_location_box.pack(side=tk.TOP,fill=tk.X,expand=0)
-        self.washbath_location_label.pack(side=tk.LEFT,fill=tk.BOTH,expand=0)
+        self.washbath_location_box.pack(side=tk.TOP,fill=tk.X,expand=1,padx=xpad,pady=ypad)
+        self.washbath_location_btn.pack(side=tk.LEFT,fill=tk.BOTH,expand=0)
         self.washbath_x_display.pack(side=tk.LEFT,fill=tk.BOTH,expand=1)
         self.washbath_y_display.pack(side=tk.LEFT,fill=tk.BOTH,expand=1)
         self.washbath_z_display.pack(side=tk.LEFT,fill=tk.BOTH,expand=1)
         self.washbath_go_btn.pack(side=tk.RIGHT,fill=tk.BOTH,expand=0)
         
+
         # Above clean bath location packing
-        self.aboveclean_location_box.pack(side=tk.TOP,fill=tk.X,expand=0)
+        self.aboveclean_location_box.pack(side=tk.BOTTOM,fill=tk.X,expand=1,padx=xpad,pady=ypad)
         self.aboveclean_location_label.pack(side=tk.LEFT,fill=tk.BOTH,expand=0)
         self.aboveclean_x_display.pack(side=tk.LEFT,fill=tk.BOTH,expand=1)
         self.aboveclean_y_display.pack(side=tk.LEFT,fill=tk.BOTH,expand=1)
@@ -387,21 +417,35 @@ class ephysTool(tk.Frame):
         self.aboveclean_go_btn.pack(side=tk.RIGHT,fill=tk.BOTH,expand=0)
         
         # Above wash bath location packing
-        self.abovewash_location_box.pack(side=tk.TOP,fill=tk.X,expand=0)
+        self.abovewash_location_box.pack(side=tk.BOTTOM,fill=tk.X,expand=1,padx=xpad,pady=ypad)
         self.abovewash_location_label.pack(side=tk.LEFT,fill=tk.BOTH,expand=0)
         self.abovewash_x_display.pack(side=tk.LEFT,fill=tk.BOTH,expand=1)
         self.abovewash_y_display.pack(side=tk.LEFT,fill=tk.BOTH,expand=1)
         self.abovewash_z_display.pack(side=tk.LEFT,fill=tk.BOTH,expand=1)
         self.abovewash_go_btn.pack(side=tk.RIGHT,fill=tk.BOTH,expand=0)
 
-        self.save_locations_btn.pack(side=tk.RIGHT,fill=tk.BOTH,expand=0)
-        self.load_locations_btn.pack(side=tk.LEFT,fill=tk.BOTH,expand=0)
+        # Load and save locations buttons
+        self.save_locations_btn.pack(side=tk.RIGHT,fill=tk.BOTH,expand=1,padx=xpad,pady=ypad)
+        self.load_locations_btn.pack(side=tk.LEFT,fill=tk.BOTH,expand=1,padx=xpad,pady=ypad)
 
         # SETTINGS FRAME PACKING
-        self.SETTINGS_FRAME.pack(side=tk.TOP,fill=tk.BOTH,expand=0)
+        self.SETTINGS_FRAME.pack(side=tk.TOP,fill=tk.BOTH,expand=1)
         self.settings_title.pack(side=tk.TOP,fill=tk.X,expand=0)
-        self.actuator_label.pack(side=tk.LEFT,fill=tk.X,expand=0)
-        self.actuatortype_choice.pack(side=tk.LEFT,fill=tk.X,expand=0)
+
+        self.actuator_box.pack(side=tk.TOP,fill=tk.X,expand=0,padx=xpad,pady=ypad)
+        self.actuator_label.pack(side=tk.LEFT,fill=tk.Y,expand=0)
+        self.sutter_btn.pack(side=tk.LEFT,fill=tk.Y,expand=0)
+        self.scientifica_btn.pack(side=tk.LEFT,fill=tk.Y,expand=0)
+        
+        self.COM_box.pack(side=tk.TOP,fill=tk.X,expand=0,padx=xpad,pady=ypad)
+        self.COM_label.pack(side=tk.LEFT,fill=tk.BOTH,expand=0)
+        self.manip_COM_combo.pack(side=tk.LEFT,fill=tk.BOTH,expand=1)
+
+        self.multiclamp_box.pack(side=tk.TOP,fill=tk.X,expand=0,padx=xpad,pady=ypad)
+        self.multiclamp_label.pack(side=tk.LEFT,fill=tk.BOTH,expand=0)
+        self.multiclamp_entry.pack(side=tk.LEFT,fill=tk.BOTH,expand=1)
+
+        self.help_btn.pack(anchor=tk.SE,expand=0)
 
         # Pack the tabs
         self.tabs.pack(fill=tk.BOTH,expand=1)
