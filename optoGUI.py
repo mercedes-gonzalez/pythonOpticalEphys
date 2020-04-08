@@ -26,9 +26,15 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.backend_bases import key_press_handler
 from tkinter.messagebox import showinfo, showwarning
-
+import random
 # GUI Formatting params
 # Colors
+sample_num = 0
+abovebath_num = 1
+washbath_num = 2
+cleanbath_num = 3
+abovewash_num = 4
+aboveclean_num = 5
 NOCOLOR = False
 if NOCOLOR:
     wash_colors = ['snow','snow3','snow2','snow3','light grey']
@@ -57,6 +63,7 @@ sty = 3
 size = 3
 xpad = 5
 ypad = 2
+INIT_STATUS_STR = 'Click CLEAN to begin.'
 NULL_DIR_STR = "* SET DIRECTORY *"
 instruction_text = """
 1. Insert helpful instructions here. 
@@ -68,14 +75,7 @@ class ephysTool(tk.Frame):
         master.title("MG Electrophysiology Tool")
         self.master = master
         getCOMports(self)
-        self.locations_dict = {
-            0 : self.moveToSample,
-            1 : self.moveToAboveBaths,
-            2 : self.moveToWashBath,
-            3 : self.moveToCleanBath,
-            4 : self.moveToAboveWash,
-            5 : self.moveToAboveClean,
-        }
+
         # Notebook
         self.tabs = ttk.Notebook(self.master)
 
@@ -96,7 +96,7 @@ class ephysTool(tk.Frame):
         self.done_indicator = tk.Label(self.controls_box, text="DONE",relief=styles[3],font=(title_str),bg='dark green')
 
         self.status_box = tk.Frame(self.CONTROLS_FRAME,bg=controls_colors[framec],relief=styles[0],borderwidth=1)
-        self.status = 'Click CLEAN to begin.'
+        self.status = INIT_STATUS_STR
         self.status_label_text = tk.StringVar()
         self.status_label_text.set(self.status)
         self.status_display = tk.Label(self.status_box, textvariable=self.status_label_text)
@@ -178,12 +178,12 @@ class ephysTool(tk.Frame):
         self.sample_z_display = tk.Label(self.sample_location_box,bg=locations_colors[boxc],textvariable=self.sample_z_value)
 
         # Sample location GO
-        self.sample_go_btn = tk.Button(self.sample_location_box,text='GO',bg=locations_colors[btnc],command=lambda: self.goToLocation(0))
+        self.sample_go_btn = tk.Button(self.sample_location_box,text='GO',bg=locations_colors[btnc],command=lambda: self.goToLocation(sample_num))
 
         # ------------------------------------
         # Above baths location
         self.abovebath_location_box = tk.Frame(self.LOCATIONS_FRAME,bg=locations_colors[framec],relief=styles[0],borderwidth=1)
-        self.abovebath_location_btn = tk.Button(self.abovebath_location_box, text="Above Bath Location:",font=(label_str),bg=locations_colors[boxc])
+        self.abovebath_location_btn = tk.Button(self.abovebath_location_box, text="Above Bath Location:",font=(label_str),bg=locations_colors[boxc],command=lambda: self.setLocation(abovebath_num))
         
         # Above baths location x
         self.abovebath_x_value = tk.IntVar()
@@ -201,12 +201,12 @@ class ephysTool(tk.Frame):
         self.abovebath_z_display = tk.Label(self.abovebath_location_box,bg=locations_colors[boxc],textvariable=self.abovebath_z_value)
 
         # Above baths location GO
-        self.abovebath_go_btn = tk.Button(self.abovebath_location_box,text='GO',bg=locations_colors[btnc],command=lambda: self.goToLocation(1))
+        self.abovebath_go_btn = tk.Button(self.abovebath_location_box,text='GO',bg=locations_colors[btnc],command=lambda: self.goToLocation(abovebath_num))
 
         # ------------------------------------
         # Wash bath location
         self.washbath_location_box = tk.Frame(self.LOCATIONS_FRAME,bg=locations_colors[framec],relief=styles[1],borderwidth=1)
-        self.washbath_location_btn = tk.Button(self.washbath_location_box, text="Wash Bath Location:",font=(label_str),bg=locations_colors[boxc])
+        self.washbath_location_btn = tk.Button(self.washbath_location_box, text="Wash Bath Location:",font=(label_str),bg=locations_colors[boxc],command=lambda: self.setLocation(washbath_num))
         
         # Wash bath location x
         self.washbath_x_value = tk.IntVar()
@@ -224,11 +224,11 @@ class ephysTool(tk.Frame):
         self.washbath_z_display = tk.Label(self.washbath_location_box,bg=locations_colors[boxc],textvariable=self.washbath_z_value)
 
         # Wash bath location GO
-        self.washbath_go_btn = tk.Button(self.washbath_location_box,text='GO',bg=locations_colors[btnc],command=lambda: self.goToLocation(2))
+        self.washbath_go_btn = tk.Button(self.washbath_location_box,text='GO',bg=locations_colors[btnc],command=lambda: self.goToLocation(washbath_num))
         # ------------------------------------
         # Clean bath location
         self.cleanbath_location_box = tk.Frame(self.LOCATIONS_FRAME,bg=locations_colors[framec],relief=styles[0],borderwidth=1)
-        self.cleanbath_location_btn = tk.Button(self.cleanbath_location_box, text="Clean Bath Location:",font=(label_str),bg=locations_colors[boxc])
+        self.cleanbath_location_btn = tk.Button(self.cleanbath_location_box, text="Clean Bath Location:",font=(label_str),bg=locations_colors[boxc],command=lambda: self.setLocation(cleanbath_num))
         
         # Clean bath location x
         self.cleanbath_x_value = tk.IntVar()
@@ -246,7 +246,7 @@ class ephysTool(tk.Frame):
         self.cleanbath_z_display = tk.Label(self.cleanbath_location_box,bg=locations_colors[boxc],textvariable=self.cleanbath_z_value)
 
         # Clean bath location GO
-        self.cleanbath_go_btn = tk.Button(self.cleanbath_location_box,text='GO',bg=locations_colors[btnc],command=lambda: self.goToLocation(3))
+        self.cleanbath_go_btn = tk.Button(self.cleanbath_location_box,text='GO',bg=locations_colors[btnc],command=lambda: self.goToLocation(cleanbath_num))
 
         # ------------------------------------
         # Above wash bath location
@@ -269,7 +269,7 @@ class ephysTool(tk.Frame):
         self.abovewash_z_display = tk.Label(self.abovewash_location_box,bg=locations_colors[boxc],textvariable=self.abovewash_z_value)
 
         # Above wash bath location GO
-        self.abovewash_go_btn = tk.Button(self.abovewash_location_box,text='GO',bg=locations_colors[btnc],command=lambda: self.goToLocation(4))
+        self.abovewash_go_btn = tk.Button(self.abovewash_location_box,text='GO',bg=locations_colors[btnc],command=lambda: self.goToLocation(abovewash_num))
 
         # ------------------------------------
         # Above clean bath location
@@ -292,7 +292,7 @@ class ephysTool(tk.Frame):
         self.aboveclean_z_display = tk.Label(self.aboveclean_location_box,bg=locations_colors[boxc],textvariable=self.aboveclean_z_value)
 
         # Above Clean bath location GO
-        self.aboveclean_go_btn = tk.Button(self.aboveclean_location_box,text='GO',bg=locations_colors[btnc],command=lambda: self.goToLocation(5))
+        self.aboveclean_go_btn = tk.Button(self.aboveclean_location_box,text='GO',bg=locations_colors[btnc],command=lambda: self.goToLocation(aboveclean_num))
 
         # ------------------------------------
         # SETTINGS FRAME WIDGETS
@@ -476,28 +476,43 @@ class ephysTool(tk.Frame):
 
 # Define GUI Functions
     def goToLocation(self,loc):
-        self.locations_dict[loc]()
-        print(loc)
-    
-    def moveToSample(self):
-        self.status = 'Moving to sample'
-        self.status_label_text.set(self.status)
-    def moveToAboveBaths(self):
-        self.status = 'Moving to above baths'
-        self.status_label_text.set(self.status)
-    def moveToCleanBath(self):
-        self.status = 'Moving to clean bath'
-        self.status_label_text.set(self.status)
-    def moveToWashBath(self):
-        self.status = 'Moving to wash bath'
-        self.status_label_text.set(self.status)
-    def moveToAboveClean(self):
-        self.status = 'Moving to above clean bath'
-        self.status_label_text.set(self.status)
-    def moveToAboveWash(self):
-        self.status = 'Moving to above wash bath'
-        self.status_label_text.set(self.status)
+        if loc == sample_num:
+            self.status = 'Moving to sample'
+            self.status_label_text.set(self.status)
+        elif loc == abovebath_num:
+            self.status = 'Moving to above baths'
+            self.status_label_text.set(self.status)
+        elif loc == cleanbath_num:
+            self.status = 'Moving to clean bath'
+            self.status_label_text.set(self.status)
+        elif loc == washbath_num:
+            self.status = 'Moving to wash bath'
+            self.status_label_text.set(self.status)
+        elif loc == aboveclean_num:
+            self.status = 'Moving to above clean bath'
+            self.status_label_text.set(self.status)
+        elif loc == abovewash_num:
+            self.status = 'Moving to above wash bath'
+            self.status_label_text.set(self.status)
             
+    def setLocation(self,loc):
+        # get location from controller here instead of randomizing
+        xloc = random.randint(1,100)
+        yloc = random.randint(1,100)
+        zloc = random.randint(1,100)
+        if loc == abovebath_num:
+            self.abovebath_x_value.set(xloc)
+            self.abovebath_y_value.set(yloc)
+            self.abovebath_z_value.set(zloc)
+        elif loc == washbath_num:
+            self.washbath_x_value.set(xloc)
+            self.washbath_y_value.set(yloc)
+            self.washbath_z_value.set(zloc)
+        elif loc == cleanbath_num:
+            self.cleanbath_x_value.set(xloc)
+            self.cleanbath_y_value.set(yloc)
+            self.cleanbath_z_value.set(zloc)
+        
     def cleanPipette(self):
         showinfo("Testing Clean Button",'Did this work...')
         self.done_indicator.configure(background='green2')
