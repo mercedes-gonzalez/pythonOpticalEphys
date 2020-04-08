@@ -58,6 +58,7 @@ class ephysTool(tk.Frame):
         tk.Frame.__init__(self,master)
         master.title("MG Electrophysiology Tool")
         self.master = master
+        getCOMports(self)
 
         # Notebook
         self.tabs = ttk.Notebook(self.master)
@@ -342,8 +343,8 @@ class ephysTool(tk.Frame):
 
         self.wash_controls_box.pack(side=tk.BOTTOM,fill=tk.BOTH,expand=0)
         self.prewash_btn.pack(side=tk.TOP,fill=tk.BOTH,expand=0)
-        self.save_wash_btn.pack(side=tk.RIGHT,fill=tk.BOTH,expand=1)
-        self.load_wash_btn.pack(side=tk.LEFT,fill=tk.BOTH,expand=1)
+        self.save_wash_btn.pack(side=tk.RIGHT,fill=tk.BOTH,expand=1,padx=xpad,pady=ypad)
+        self.load_wash_btn.pack(side=tk.LEFT,fill=tk.BOTH,expand=1,padx=xpad,pady=ypad)
 
         self.wash_time_box.pack(side=tk.LEFT,fill=tk.Y,expand=1)
         self.wash_time_label.pack(side=tk.TOP,fill=tk.X,expand=0)
@@ -359,8 +360,8 @@ class ephysTool(tk.Frame):
         self.clean_title.pack(side=tk.TOP,fill=tk.X,expand=0)
 
         self.clean_controls_box.pack(side=tk.BOTTOM,fill=tk.BOTH,expand=0)
-        self.save_clean_btn.pack(side=tk.RIGHT,fill=tk.BOTH,expand=1)
-        self.load_clean_btn.pack(side=tk.LEFT,fill=tk.BOTH,expand=1)
+        self.save_clean_btn.pack(side=tk.RIGHT,fill=tk.BOTH,expand=1,padx=xpad,pady=ypad)
+        self.load_clean_btn.pack(side=tk.LEFT,fill=tk.BOTH,expand=1,padx=xpad,pady=ypad)
 
         self.clean_time_box.pack(side=tk.LEFT,fill=tk.Y,expand=1)
         self.clean_time_label.pack(side=tk.TOP,fill=tk.X,expand=0)
@@ -449,6 +450,7 @@ class ephysTool(tk.Frame):
 
         # Pack the tabs
         self.tabs.pack(fill=tk.BOTH,expand=1)
+
 # Define GUI Functions
     def popup_help(self):
         showinfo("Help", instruction_text)
@@ -471,6 +473,7 @@ root.mainloop()
 
 '''
     TODO: WITHOUT SUTTER
+    - buttons have bold text, text entries are white, labels are not bold. 
     - read times/pressures from text() boxes from a list
     - save protocols (to csv)
     - load protocols (from csv)
