@@ -511,7 +511,7 @@ class ephysTool(tk.Frame):
         clean = np.array((self.cleanbath_x_value.get(),self.cleanbath_y_value.get(),self.cleanbath_z_value.get()),dtype='int32')
         wash = np.array((self.washbath_x_value.get(),self.washbath_y_value.get(),self.washbath_z_value.get()),dtype='int32')
         all = np.transpose(np.vstack((above,clean,wash)))
-        print(all)
+
         f = filedialog.asksaveasfilename(filetypes=[('Comma separated variable', 'csv')],defaultextension='.csv')
         if f: # asksaveasfile return `None` if dialog closed with "cancel".
             np.savetxt(f, all, delimiter=',', fmt='%s', header='above,clean,wash')
@@ -520,9 +520,22 @@ class ephysTool(tk.Frame):
         else:
             self.popup_save(False)
             return
-        return
     
     def loadLocations(self):
+        f = filedialog.askopenfilename(title='Select locations file',filetypes=[('Comma separated variable', 'csv')],defaultextension='.csv')
+        contents = np.genfromtxt(f,delimiter=',')
+        self.abovebath_x_value.set(int(contents[0][0]))
+        self.abovebath_y_value.set(int(contents[1][0]))
+        self.abovebath_z_value.set(int(contents[2][0]))
+        
+        self.cleanbath_x_value.set(int(contents[0][1]))
+        self.cleanbath_y_value.set(int(contents[1][1]))
+        self.cleanbath_z_value.set(int(contents[2][1]))
+        
+        self.washbath_x_value.set(int(contents[0][2]))
+        self.washbath_y_value.set(int(contents[1][2]))
+        self.washbath_z_value.set(int(contents[2][2]))
+
         return
 
     def cleanPipette(self):
