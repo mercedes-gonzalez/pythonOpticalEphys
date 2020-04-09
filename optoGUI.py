@@ -92,45 +92,43 @@ class ephysTool(tk.Frame):
         # CONTROLS FRAME WIDGETS
         self.controls_title = tk.Label(self.CONTROLS_FRAME, text="CONTROLS + STATUS",font=(title_str),bg=controls_colors[framec])
         self.controls_box = tk.Frame(self.CONTROLS_FRAME,bg=controls_colors[framec],relief=styles[0],borderwidth=1)
-        self.clean_btn = tk.Button(self.controls_box,text='CLEAN',bg=controls_colors[btnc],command=self.cleanPipette)
-        self.done_indicator = tk.Label(self.controls_box, text="DONE",relief=styles[3],font=(title_str),bg='dark green')
+        self.clean_btn = tk.Button(self.controls_box,text='CLEAN',font=(btn_str),bg=controls_colors[btnc],command=self.cleanPipette)
+        self.done_indicator = tk.Label(self.controls_box, text="DONE",relief=styles[3],font=(label_str),bg='dark green')
 
         self.status_box = tk.Frame(self.CONTROLS_FRAME,bg=controls_colors[framec],relief=styles[0],borderwidth=1)
         self.status = tk.StringVar()
         self.status.set(INIT_STATUS_STR)
-        self.status_display = tk.Label(self.status_box, textvariable=self.status)
+        self.status_display = tk.Label(self.status_box, textvariable=self.status,bg=controls_colors[framec],relief=styles[3])
         self.status_label = tk.Label(self.status_box, text="Status:",font=(label_str),bg=controls_colors[framec])
 
         self.duration_value = tk.DoubleVar()
         self.duration_value.set(20) # default capactiance
-        self.duration_label = tk.Label(self.controls_box, text="Break In Duration [s]:",font=(label_str),bg=controls_colors[framec])
+        self.duration_label = tk.Label(self.controls_box, text="Break In Duration [ms]:",font=(label_str),bg=controls_colors[framec])
         vcmd = self.master.register(self.validate) # we have to wrap the command
         self.duration_entry = tk.Entry(self.controls_box, text=self.duration_value,validate="key", validatecommand=(vcmd, '%P'),bg=controls_colors[entryc])
 
-        self.breakin_btn = tk.Button(self.controls_box,text='BREAK IN',bg=controls_colors[btnc])
-        self.stop_btn = tk.Button(self.CONTROLS_FRAME,text='STOP',bg=controls_colors[btnc],fg='red',command=self.stopCleaning)
+        self.breakin_btn = tk.Button(self.controls_box,text='BREAK IN',font=(btn_str),bg=controls_colors[btnc])
+        self.stop_btn = tk.Button(self.CONTROLS_FRAME,text='STOP',font=(btn_str),bg=controls_colors[btnc],fg='red',command=self.stopCleaning)
 
         # WASH FRAME WIDGETS
         self.wash_title = tk.Label(self.WASH_FRAME, text="WASH",font=(title_str),bg=wash_colors[framec])
         
         self.wash_time_box = tk.Frame(self.WASH_FRAME,bg=wash_colors[boxc],relief=styles[1],borderwidth=1)
-        self.wash_time_value = tk.StringVar()
-        self.wash_time_value.set('3,\n10') # default capactiance
         self.wash_time_label = tk.Label(self.wash_time_box,bg=wash_colors[boxc],text="Time [s]")
-        self.wash_time_entry = tk.Text(self.wash_time_box,bg=wash_colors[entryc],width=boxwidth)
+        self.wash_time_value = tk.Text(self.wash_time_box,bg=wash_colors[entryc],width=boxwidth)
+        self.wash_time_value.insert(tk.INSERT,'3\n10')
         
         self.wash_pres_box = tk.Frame(self.WASH_FRAME,bg=wash_colors[boxc],relief=styles[1],borderwidth=1)
-        self.wash_pres_value = tk.StringVar()
-        self.wash_pres_value.set('-345,\n1000') # default capactiance
         self.wash_pres_label = tk.Label(self.wash_pres_box,bg=wash_colors[boxc],text="Pressure [mBar]")
-        self.wash_pres_entry = tk.Text(self.wash_pres_box,bg=wash_colors[entryc],width=boxwidth)
+        self.wash_pres_value = tk.Text(self.wash_pres_box,bg=wash_colors[entryc],width=boxwidth)
+        self.wash_pres_value.insert(tk.INSERT,'3\n10')
 
         self.prewash = tk.IntVar()
         self.prewash.set(0)
         self.wash_controls_box = tk.Frame(self.WASH_FRAME,bg=wash_colors[boxc],relief=styles[sty],borderwidth=1)
-        self.prewash_btn = tk.Checkbutton(self.wash_controls_box,text='PREWASH',bg=wash_colors[boxc],selectcolor=wash_colors[3],indicatoron=1,variable=self.prewash,onvalue=1,offvalue=0)
-        self.save_wash_btn = tk.Button(self.wash_controls_box,text='SAVE PROTOCOL',bg=wash_colors[btnc])
-        self.load_wash_btn = tk.Button(self.wash_controls_box,text='LOAD PROTOCOL',bg=wash_colors[btnc])
+        self.prewash_btn = tk.Checkbutton(self.wash_controls_box,text='PREWASH',font=(btn_str),bg=wash_colors[boxc],selectcolor=wash_colors[3],indicatoron=1,variable=self.prewash,onvalue=1,offvalue=0)
+        self.save_wash_btn = tk.Button(self.wash_controls_box,text='SAVE PROTOCOL',font=(btn_str),bg=wash_colors[btnc],command=lambda: self.saveProtocol('wash'))
+        self.load_wash_btn = tk.Button(self.wash_controls_box,text='LOAD PROTOCOL',font=(btn_str),bg=wash_colors[btnc],command=lambda: self.loadProtocol('wash'))
 
         
         # CLEAN FRAME WIDGETS
@@ -138,24 +136,22 @@ class ephysTool(tk.Frame):
         self.clean_controls_box = tk.Frame(self.CLEAN_FRAME,bg=clean_colors[boxc],relief=styles[1],borderwidth=1)
 
         self.clean_time_box = tk.Frame(self.CLEAN_FRAME,bg=clean_colors[boxc],relief=styles[1],borderwidth=1)
-        self.clean_time_value = tk.StringVar()
-        self.clean_time_value.set('3,\n10') # default capactiance
         self.clean_time_label = tk.Label(self.clean_time_box,bg=clean_colors[boxc],text="Time [s]")
-        self.clean_time_entry = tk.Text(self.clean_time_box,bg=clean_colors[entryc],width=boxwidth)
+        self.clean_time_value = tk.Text(self.clean_time_box,bg=clean_colors[entryc],width=boxwidth)
+        self.clean_time_value.insert(tk.INSERT,'3\n10')
         
         self.clean_pres_box = tk.Frame(self.CLEAN_FRAME,bg=clean_colors[boxc],relief=styles[1],borderwidth=1)
-        self.clean_pres_value = tk.StringVar()
-        self.clean_pres_value.set('-345,\n1000') # default capactiance
         self.clean_pres_label = tk.Label(self.clean_pres_box,bg=clean_colors[boxc],text="Pressure [mBar]")
-        self.clean_pres_entry = tk.Text(self.clean_pres_box,bg=clean_colors[entryc],width=boxwidth)
+        self.clean_pres_value = tk.Text(self.clean_pres_box,bg=clean_colors[entryc],width=boxwidth)
+        self.clean_pres_value.insert(tk.INSERT,'3\n10')
 
-        self.save_clean_btn = tk.Button(self.clean_controls_box,text='SAVE PROTOCOL',bg=clean_colors[btnc])
-        self.load_clean_btn = tk.Button(self.clean_controls_box,text='LOAD PROTOCOL',bg=clean_colors[btnc])
+        self.save_clean_btn = tk.Button(self.clean_controls_box,text='SAVE PROTOCOL',font=(btn_str),bg=clean_colors[btnc],command=lambda: self.saveProtocol('clean'))
+        self.load_clean_btn = tk.Button(self.clean_controls_box,text='LOAD PROTOCOL',font=(btn_str),bg=clean_colors[btnc],command=lambda: self.loadProtocol('clean'))
 
         # LOCATIONS FRAME WIDGETS
         self.locations_title = tk.Label(self.LOCATIONS_FRAME, text="LOCATIONS",font=(title_str),bg=locations_colors[framec])
-        self.save_locations_btn = tk.Button(self.LOCATIONS_FRAME,text='SAVE LOCATIONS',relief=styles[1],bg=locations_colors[btnc],command=self.saveLocations)
-        self.load_locations_btn = tk.Button(self.LOCATIONS_FRAME,text='LOAD LOCATIONS',relief=styles[1],bg=locations_colors[btnc],command=self.loadLocations)
+        self.save_locations_btn = tk.Button(self.LOCATIONS_FRAME,text='SAVE LOCATIONS',font=(btn_str),relief=styles[1],bg=locations_colors[btnc],command=self.saveLocations)
+        self.load_locations_btn = tk.Button(self.LOCATIONS_FRAME,text='LOAD LOCATIONS',font=(btn_str),relief=styles[1],bg=locations_colors[btnc],command=self.loadLocations)
 
         # Sample location
         self.sample_location_box = tk.Frame(self.LOCATIONS_FRAME,bg=locations_colors[framec],relief=styles[0],borderwidth=0)
@@ -177,12 +173,12 @@ class ephysTool(tk.Frame):
         self.sample_z_display = tk.Label(self.sample_location_box,bg=locations_colors[boxc],textvariable=self.sample_z_value)
 
         # Sample location GO
-        self.sample_go_btn = tk.Button(self.sample_location_box,text='GO',bg=locations_colors[btnc],command=lambda: self.goToLocation(sample_num))
+        self.sample_go_btn = tk.Button(self.sample_location_box,text='GO',font=(btn_str),bg=locations_colors[btnc],command=lambda: self.goToLocation(sample_num))
 
         # ------------------------------------
         # Above baths location
         self.abovebath_location_box = tk.Frame(self.LOCATIONS_FRAME,bg=locations_colors[framec],relief=styles[0],borderwidth=1)
-        self.abovebath_location_btn = tk.Button(self.abovebath_location_box, text="Above Bath Location:",font=(label_str),bg=locations_colors[boxc],command=lambda: self.setLocation(abovebath_num))
+        self.abovebath_location_btn = tk.Button(self.abovebath_location_box, text="Above Bath Location:",font=(btn_str),bg=locations_colors[boxc],command=lambda: self.setLocation(abovebath_num))
         
         # Above baths location x
         self.abovebath_x_value = tk.IntVar()
@@ -200,12 +196,12 @@ class ephysTool(tk.Frame):
         self.abovebath_z_display = tk.Label(self.abovebath_location_box,bg=locations_colors[boxc],textvariable=self.abovebath_z_value)
 
         # Above baths location GO
-        self.abovebath_go_btn = tk.Button(self.abovebath_location_box,text='GO',bg=locations_colors[btnc],command=lambda: self.goToLocation(abovebath_num))
+        self.abovebath_go_btn = tk.Button(self.abovebath_location_box,text='GO',font=(btn_str),bg=locations_colors[btnc],command=lambda: self.goToLocation(abovebath_num))
 
         # ------------------------------------
         # Wash bath location
         self.washbath_location_box = tk.Frame(self.LOCATIONS_FRAME,bg=locations_colors[framec],relief=styles[1],borderwidth=1)
-        self.washbath_location_btn = tk.Button(self.washbath_location_box, text="Wash Bath Location:",font=(label_str),bg=locations_colors[boxc],command=lambda: self.setLocation(washbath_num))
+        self.washbath_location_btn = tk.Button(self.washbath_location_box, text="Wash Bath Location:",font=(btn_str),bg=locations_colors[boxc],command=lambda: self.setLocation(washbath_num))
         
         # Wash bath location x
         self.washbath_x_value = tk.IntVar()
@@ -223,11 +219,11 @@ class ephysTool(tk.Frame):
         self.washbath_z_display = tk.Label(self.washbath_location_box,bg=locations_colors[boxc],textvariable=self.washbath_z_value)
 
         # Wash bath location GO
-        self.washbath_go_btn = tk.Button(self.washbath_location_box,text='GO',bg=locations_colors[btnc],command=lambda: self.goToLocation(washbath_num))
+        self.washbath_go_btn = tk.Button(self.washbath_location_box,text='GO',font=(btn_str),bg=locations_colors[btnc],command=lambda: self.goToLocation(washbath_num))
         # ------------------------------------
         # Clean bath location
         self.cleanbath_location_box = tk.Frame(self.LOCATIONS_FRAME,bg=locations_colors[framec],relief=styles[0],borderwidth=1)
-        self.cleanbath_location_btn = tk.Button(self.cleanbath_location_box, text="Clean Bath Location:",font=(label_str),bg=locations_colors[boxc],command=lambda: self.setLocation(cleanbath_num))
+        self.cleanbath_location_btn = tk.Button(self.cleanbath_location_box, text="Clean Bath Location:",font=(btn_str),bg=locations_colors[boxc],command=lambda: self.setLocation(cleanbath_num))
         
         # Clean bath location x
         self.cleanbath_x_value = tk.IntVar()
@@ -245,7 +241,7 @@ class ephysTool(tk.Frame):
         self.cleanbath_z_display = tk.Label(self.cleanbath_location_box,bg=locations_colors[boxc],textvariable=self.cleanbath_z_value)
 
         # Clean bath location GO
-        self.cleanbath_go_btn = tk.Button(self.cleanbath_location_box,text='GO',bg=locations_colors[btnc],command=lambda: self.goToLocation(cleanbath_num))
+        self.cleanbath_go_btn = tk.Button(self.cleanbath_location_box,text='GO',font=(btn_str),bg=locations_colors[btnc],command=lambda: self.goToLocation(cleanbath_num))
 
         # ------------------------------------
         # Above wash bath location
@@ -268,7 +264,7 @@ class ephysTool(tk.Frame):
         self.abovewash_z_display = tk.Label(self.abovewash_location_box,bg=locations_colors[boxc],textvariable=self.abovewash_z_value)
 
         # Above wash bath location GO
-        self.abovewash_go_btn = tk.Button(self.abovewash_location_box,text='GO',bg=locations_colors[btnc],command=lambda: self.goToLocation(abovewash_num))
+        self.abovewash_go_btn = tk.Button(self.abovewash_location_box,text='GO',font=(btn_str),bg=locations_colors[btnc],command=lambda: self.goToLocation(abovewash_num))
 
         # ------------------------------------
         # Above clean bath location
@@ -291,7 +287,7 @@ class ephysTool(tk.Frame):
         self.aboveclean_z_display = tk.Label(self.aboveclean_location_box,bg=locations_colors[boxc],textvariable=self.aboveclean_z_value)
 
         # Above Clean bath location GO
-        self.aboveclean_go_btn = tk.Button(self.aboveclean_location_box,text='GO',bg=locations_colors[btnc],command=lambda: self.goToLocation(aboveclean_num))
+        self.aboveclean_go_btn = tk.Button(self.aboveclean_location_box,text='GO',font=(btn_str),bg=locations_colors[btnc],command=lambda: self.goToLocation(aboveclean_num))
 
         # ------------------------------------
         # SETTINGS FRAME WIDGETS
@@ -365,11 +361,11 @@ class ephysTool(tk.Frame):
 
         self.wash_time_box.pack(side=tk.LEFT,fill=tk.Y,expand=1)
         self.wash_time_label.pack(side=tk.TOP,fill=tk.X,expand=0)
-        self.wash_time_entry.pack(side=tk.TOP,fill=tk.Y,expand=0)
+        self.wash_time_value.pack(side=tk.TOP,fill=tk.Y,expand=0)
         
         self.wash_pres_box.pack(side=tk.RIGHT,fill=tk.Y,expand=1)
         self.wash_pres_label.pack(side=tk.TOP,fill=tk.X,expand=0)
-        self.wash_pres_entry.pack(side=tk.TOP,fill=tk.Y,expand=0)
+        self.wash_pres_value.pack(side=tk.TOP,fill=tk.Y,expand=0)
 
 
         # CLEAN FRAME PACKING
@@ -382,11 +378,11 @@ class ephysTool(tk.Frame):
 
         self.clean_time_box.pack(side=tk.LEFT,fill=tk.Y,expand=1)
         self.clean_time_label.pack(side=tk.TOP,fill=tk.X,expand=0)
-        self.clean_time_entry.pack(side=tk.TOP,fill=tk.Y,expand=0)
+        self.clean_time_value.pack(side=tk.TOP,fill=tk.Y,expand=0)
         
         self.clean_pres_box.pack(side=tk.RIGHT,fill=tk.Y,expand=1)
         self.clean_pres_label.pack(side=tk.TOP,fill=tk.X,expand=0)
-        self.clean_pres_entry.pack(side=tk.TOP,fill=tk.Y,expand=0)
+        self.clean_pres_value.pack(side=tk.TOP,fill=tk.Y,expand=0)
 
 
         # LOCATIONS FRAME PACKING
@@ -536,7 +532,28 @@ class ephysTool(tk.Frame):
         self.washbath_y_value.set(int(contents[1][2]))
         self.washbath_z_value.set(int(contents[2][2]))
 
-        return
+    def loadProtocol(self,protocol_type):
+        if protocol_type == 'clean':
+            print('loading clean')
+        else: # wash protocol
+            print('loading wash')
+        
+    def saveProtocol(self,protocol_type):
+        name = filedialog.asksaveasfilename(filetypes=[('Comma separated variable', 'csv')],defaultextension='.csv')
+        f = open(name,"w")
+        if protocol_type == 'clean':
+            print('saving clean')
+            f.write('Time [s]')
+            f.write(self.clean_time_value.get())
+            f.write('Pressure [mBar]')
+            f.write(self.clean_pres_value.get())
+        else: # wash protocol
+            print('saving wash')
+            f.write('Time [s]')
+            f.write(self.wash_time_value.get())
+            f.write('Pressure [mBar]')
+            f.write(self.wash_pres_value.get())
+        f.close()
 
     def cleanPipette(self):
         showinfo("Testing Clean Button",'Did this work...')
@@ -578,9 +595,6 @@ root.mainloop()
     - read times/pressures from text() boxes from a list
     - save protocols (to csv)
     - load protocols (from csv)
-    - set locations
-    - load locations (from csv)
-    - save locations (to csv)
     - calculate retracting movements
     - load available COM ports and import to control list
     - determine multiclamp handle
@@ -588,6 +602,7 @@ root.mainloop()
     - load default settings
 
     TODO: WITH SUTTER
+    - set locations
     - does driver from github work? 
     - will it work without the actual manip? 
     - get position
@@ -601,6 +616,8 @@ root.mainloop()
 
     FINISHED: 
     - looks pretty good. 
+    - load locations (from csv)
+    - save locations (to csv)
     
 
 '''
