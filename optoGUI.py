@@ -542,17 +542,15 @@ class ephysTool(tk.Frame):
         name = filedialog.asksaveasfilename(filetypes=[('Comma separated variable', 'csv')],defaultextension='.csv')
         f = open(name,"w")
         if protocol_type == 'clean':
-            print('saving clean')
-            f.write('Time [s]')
-            f.write(self.clean_time_value.get())
-            f.write('Pressure [mBar]')
-            f.write(self.clean_pres_value.get())
+            f.write('Time [s]\n')
+            f.write(self.clean_time_value.get(1.0,tk.END))
+            f.write('Pressure [mBar]\n')
+            f.write(self.clean_pres_value.get(1.0,tk.END))
         else: # wash protocol
             print('saving wash')
-            f.write('Time [s]')
-            f.write(self.wash_time_value.get())
-            f.write('Pressure [mBar]')
-            f.write(self.wash_pres_value.get())
+            f.write(self.wash_time_value.get(1.0,tk.END))
+            f.write('Pressure [mBar]\n')
+            f.write(self.wash_pres_value.get(1.0,tk.END))
         f.close()
 
     def cleanPipette(self):
