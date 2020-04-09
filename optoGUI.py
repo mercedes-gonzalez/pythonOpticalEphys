@@ -96,10 +96,9 @@ class ephysTool(tk.Frame):
         self.done_indicator = tk.Label(self.controls_box, text="DONE",relief=styles[3],font=(title_str),bg='dark green')
 
         self.status_box = tk.Frame(self.CONTROLS_FRAME,bg=controls_colors[framec],relief=styles[0],borderwidth=1)
-        self.status = INIT_STATUS_STR
-        self.status_label_text = tk.StringVar()
-        self.status_label_text.set(self.status)
-        self.status_display = tk.Label(self.status_box, textvariable=self.status_label_text)
+        self.status = tk.StringVar()
+        self.status.set(INIT_STATUS_STR)
+        self.status_display = tk.Label(self.status_box, textvariable=self.status)
         self.status_label = tk.Label(self.status_box, text="Status:",font=(label_str),bg=controls_colors[framec])
 
         self.duration_value = tk.DoubleVar()
@@ -155,8 +154,8 @@ class ephysTool(tk.Frame):
 
         # LOCATIONS FRAME WIDGETS
         self.locations_title = tk.Label(self.LOCATIONS_FRAME, text="LOCATIONS",font=(title_str),bg=locations_colors[framec])
-        self.save_locations_btn = tk.Button(self.LOCATIONS_FRAME,text='SAVE LOCATIONS',relief=styles[1],bg=locations_colors[btnc])
-        self.load_locations_btn = tk.Button(self.LOCATIONS_FRAME,text='LOAD LOCATIONS',relief=styles[1],bg=locations_colors[btnc])
+        self.save_locations_btn = tk.Button(self.LOCATIONS_FRAME,text='SAVE LOCATIONS',relief=styles[1],bg=locations_colors[btnc],command=self.saveLocations)
+        self.load_locations_btn = tk.Button(self.LOCATIONS_FRAME,text='LOAD LOCATIONS',relief=styles[1],bg=locations_colors[btnc],command=self.loadLocations)
 
         # Sample location
         self.sample_location_box = tk.Frame(self.LOCATIONS_FRAME,bg=locations_colors[framec],relief=styles[0],borderwidth=0)
@@ -477,23 +476,17 @@ class ephysTool(tk.Frame):
 # Define GUI Functions
     def goToLocation(self,loc):
         if loc == sample_num:
-            self.status = 'Moving to sample'
-            self.status_label_text.set(self.status)
+            self.status.set('Moving to sample')
         elif loc == abovebath_num:
-            self.status = 'Moving to above baths'
-            self.status_label_text.set(self.status)
+            self.status.set('Moving to sample')
         elif loc == cleanbath_num:
-            self.status = 'Moving to clean bath'
-            self.status_label_text.set(self.status)
+            self.status.set('Moving to clean bath')
         elif loc == washbath_num:
-            self.status = 'Moving to wash bath'
-            self.status_label_text.set(self.status)
+            self.status.set('Moving to wash bath')
         elif loc == aboveclean_num:
-            self.status = 'Moving to above clean bath'
-            self.status_label_text.set(self.status)
+            self.status.set('Moving to above clean bath')
         elif loc == abovewash_num:
-            self.status = 'Moving to above wash bath'
-            self.status_label_text.set(self.status)
+            self.status.set('Moving to above wash bath')
             
     def setLocation(self,loc):
         # get location from controller here instead of randomizing
@@ -513,6 +506,25 @@ class ephysTool(tk.Frame):
             self.cleanbath_y_value.set(yloc)
             self.cleanbath_z_value.set(zloc)
         
+    def saveLocations(self):
+        above = np.array((self.abovebath_x_value.get(),self.abovebath_y_value.get(),self.abovebath_z_value.get()),dtype='int32')
+        clean = np.array((self.cleanbath_x_value.get(),self.cleanbath_y_value.get(),self.cleanbath_z_value.get()),dtype='int32')
+        wash = np.array((self.washbath_x_value.get(),self.washbath_y_value.get(),self.washbath_z_value.get()),dtype='int32')
+        all = np.transpose(np.vstack((above,clean,wash)))
+        print(all)
+        f = filedialog.asksaveasfilename(filetypes=[('Comma separated variable', 'csv')],defaultextension='.csv')
+        if f: # asksaveasfile return `None` if dialog closed with "cancel".
+            np.savetxt(f, all, delimiter=',', fmt='%s', header='above,clean,wash')
+            self.save_text = """ Data saved successfully at """ + f
+            self.popup_save(True)
+        else:
+            self.popup_save(False)
+            return
+        return
+    
+    def loadLocations(self):
+        return
+
     def cleanPipette(self):
         showinfo("Testing Clean Button",'Did this work...')
         self.done_indicator.configure(background='green2')
@@ -524,6 +536,12 @@ class ephysTool(tk.Frame):
 
     def popup_help(self):
         showinfo("Help", instruction_text)
+
+    def popup_save(self,saved):
+        if saved == False:
+            showwarning("Warning","Data was not saved.")
+        else:
+            showinfo("Save Successful", self.save_text)
 
     def validate(self, new_text):
         if not new_text: # the field is being cleared
