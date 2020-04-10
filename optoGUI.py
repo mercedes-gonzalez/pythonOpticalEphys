@@ -26,8 +26,9 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.backend_bases import key_press_handler
 from tkinter.messagebox import showinfo, showwarning
-import random
-import re
+import random #randomize locations for now
+import re # regex 
+import time # for sleeps
 # GUI Formatting params
 # Colors
 sample_num = 0
@@ -43,13 +44,14 @@ if NOCOLOR:
     locations_colors = wash_colors
     settings_colors = wash_colors
     controls_colors = wash_colors
+    help_colors = wash_colors
 else:
     wash_colors = ['peach puff','firebrick1','firebrick2','firebrick3','firebrick4']
     clean_colors = ['navajo white','DarkOrange1','DarkOrange2','DarkOrange3','DarkOrange4']
     locations_colors = ['lemon chiffon','goldenrod1','goldenrod2','goldenrod3','goldenrod4']
     settings_colors = ['mint cream','green','green1','green3','green4']
     controls_colors = ['lavender','MediumPurple1','MediumPurple2','MediumPurple3','MediumPurple4']
-
+    help_colors = ['alice blue','RoyalBlue1','RoyalBlue2','RoyalBlue3','RoyalBlue4']
 entryc = 0
 btnc = 1
 boxc = 2
@@ -67,7 +69,12 @@ ypad = 2
 INIT_STATUS_STR = 'Click CLEAN to begin.'
 NULL_DIR_STR = "* SET DIRECTORY *"
 instruction_text = """
-1. Insert helpful instructions here. 
+CONTROLS + STATUS:
+[CLEAN] Initiates cleaning protocol selected in SETTINGS frame.
+[BREAK IN] Performs break in pressure control only. (No manipulator movement)
+[STOP] Stops all processes in progress.
+
+WASH
 """
 # Define GUI class
 class ephysTool(tk.Frame):
@@ -77,12 +84,15 @@ class ephysTool(tk.Frame):
         self.master = master
         getCOMports(self)
 
+        s = ttk.Style()
+        s.configure('TNotebook.Tab', font=('URW Gothic L','12','bold'),foreground="black",)
+
         # Notebook
         self.tabs = ttk.Notebook(self.master)
 
         # DEFINE CLEANING FRAMES
         self.CLEAN_TAB = tk.Frame(self.tabs,bg='snow3',relief=styles[sty],borderwidth=size)
-        self.tabs.add(self.CLEAN_TAB,text='AUTO-CLEANING')
+        self.tabs.add(self.CLEAN_TAB,text=' | AUTO-CLEANING | ')
         
         self.CONTROLS_FRAME = tk.Frame(self.CLEAN_TAB,bg=controls_colors[framec],relief=styles[sty],borderwidth=size)
         self.WASH_FRAME = tk.Frame(self.CLEAN_TAB,bg=wash_colors[framec],relief=styles[sty],borderwidth=size)
@@ -322,12 +332,18 @@ class ephysTool(tk.Frame):
         self.multiclamp_entry = tk.Entry(self.multiclamp_box, text=self.multiclamp_handle,validate="key", validatecommand=(vcmd, '%P'),bg=settings_colors[entryc])
         self.multiclamp_label = tk.Label(self.multiclamp_box, text="Multiclamp Handle: ",font=(label_str),bg=settings_colors[framec])
         
-        self.help_btn = tk.Button(self.SETTINGS_FRAME,text='Help',bg=settings_colors[btnc],command=self.popup_help)
+        # self.help_btn = tk.Button(self.SETTINGS_FRAME,text='Help',bg=settings_colors[btnc],command=self.popup_help)
         
-        # DEFINE OPTOEPHYS FRAMES
+        # DEFINE OPTOEPHYS FRAME
         self.OPTOEPHYS_TAB = tk.Frame(self.tabs,bg='snow3',relief=styles[sty],borderwidth=size)
-        self.tabs.add(self.OPTOEPHYS_TAB,text='OPTIX + EPHYS')
+        self.tabs.add(self.OPTOEPHYS_TAB,text=' | OPTIX + EPHYS | ')
 
+        # DEFINE HELP FRAME
+        self.HELP_TAB = tk.Frame(self.tabs,bg='snow3',relief=styles[sty],borderwidth=size)
+        self.tabs.add(self.HELP_TAB,text=' | HELP | ')
+
+        self.instructions_label = tk.Label(self.HELP_TAB, text="Instructions",font=(title_str),bg=help_colors[framec])
+        self.help_label = tk.Label(self.HELP_TAB,text=instruction_text,font=(label_str),bg=help_colors[boxc])
 # _____________________________________________________
 # _____________________________________________________
 #               PACKING 
@@ -465,8 +481,10 @@ class ephysTool(tk.Frame):
         self.multiclamp_label.pack(side=tk.LEFT,fill=tk.BOTH,expand=0)
         self.multiclamp_entry.pack(side=tk.LEFT,fill=tk.BOTH,expand=1)
 
-        self.help_btn.pack(anchor=tk.SE,expand=0,padx=xpad,pady=ypad)
-
+        # self.help_btn.pack(anchor=tk.SE,expand=0,padx=xpad,pady=ypad)
+        # HELP PACKING
+        self.instructions_label.pack(side=tk.TOP,fill=tk.X,expand=0,padx=xpad,pady=ypad)
+        self.help_label.pack(side=tk.TOP,fill=tk.BOTH,expand=0,padx=xpad,pady=ypad)
         # Pack the tabs
         self.tabs.pack(fill=tk.BOTH,expand=1)
 
@@ -618,11 +636,22 @@ class ephysTool(tk.Frame):
             f.close()
 
     def cleanPipette(self):
-        showinfo("Testing Clean Button",'Did this work...')
+        showinfo("Ready?",'Make sure that the pipette is at a safe location above the sample. Then press OK.')
+
+        self.status.set('Retracting from sample...')
+        time.sleep(2)
+
+        self.status.set('Moving laterally to baths...')
+        time.sleep(2)
+
+        self.status.set('Axial movement to bath ...')
+        time.sleep(2)
+        
+        self.status.set('Retracting from sample...')
+        time.sleep(2)
         self.done_indicator.configure(background='green2')
 
     def stopCleaning(self):
-        showinfo("Testing Stop Button",'STOP ALL!')
         self.done_indicator.configure(background='red')
         self.done_indicator.configure(text='USER STOPPED')
 
