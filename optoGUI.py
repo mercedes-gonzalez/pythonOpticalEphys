@@ -533,16 +533,32 @@ class ephysTool(tk.Frame):
         self.washbath_y_value.set(int(contents[1][2]))
         self.washbath_z_value.set(int(contents[2][2]))
     
-    def clearProtocolDisplay(self,disp):
-        if disp == 'clean':
+    def updateProtocolDisplay(self,protocol_type):
+        if protocol_type == 'clean':
+            # Clear display
             self.clean_time_display.delete(1.0,tk.END)
             self.clean_pres_display.delete(1.0,tk.END)
+
+            # Update with new values
+            self.setProtocol(self.clean_time_value, self.clean_pres_value,'clean')
+            for t in self.clean_time_value:
+                self.clean_time_display.insert(tk.INSERT,str(t)+"\n")
+            for p in self.clean_pres_value:
+                self.clean_pres_display.insert(tk.INSERT,str(p)+"\n")
         else: # wash
+            # Clear display
             self.wash_time_display.delete(1.0,tk.END)
             self.wash_pres_display.delete(1.0,tk.END)
-    
-    def setProtocol(self,time,pres,method):
-        if method == 'clean':
+
+            # Update with new values
+            self.setProtocol(self.wash_time_value, self.wash_pres_value,'wash')
+            for t in self.wash_time_value:
+                self.wash_time_display.insert(tk.INSERT,str(t)+"\n")
+            for p in self.wash_pres_value:
+                self.wash_pres_display.insert(tk.INSERT,str(p)+"\n")
+
+    def setProtocol(self,time,pres,protocol_type):
+        if protocol_type == 'clean':
             self.clean_time_value = time
             self.clean_pres_value = pres
             
@@ -560,46 +576,46 @@ class ephysTool(tk.Frame):
         # Split by , ... Remove empty strings... map to integers! 
         temptime = list(map(int,list(filter(None,re.split(",",tempdata[1])))))
         temppres = list(map(int,list(filter(None,re.split(",",tempdata[3])))))
+        
+        # Error catching: vectors must be same length
         if len(temptime) != len(temppres):
             showwarning("Warning","Time and pressure inputs from the selected file are not the same length. Please check the file and try again.")
             return
-        # Clear display
-        self.clearProtocolDisplay(protocol_type)
 
+        # Update variable value from csv
+        self.setProtocol(temptime,temppres,protocol_type)
+        # Update display
+        self.updateProtocolDisplay(protocol_type)
+    
+    def updateProtocolValue(self,protocol_type): # call this whenever user changes input 
         if protocol_type == 'clean':
-            self.setProtocol(temptime, temppres,'clean')
-            for t in temptime:
-                self.clean_time_display.insert(tk.INSERT,str(t)+"\n")
-            for p in temppres:
-                self.clean_pres_display.insert(tk.INSERT,str(p)+"\n")
+            self.clean_time_value = re.sub("\n",",",self.clean_time_display.get(1.0,tk.END)) + "\n"
+            self.clean_pres_value = re.sub("\n",",",self.clean_pres_display.get(1.0,tk.END)) + "\n"
         else: # wash protocol
-            self.setProtocol(temptime, temppres,'wash')
-            for t in temptime:
-                self.wash_time_display.insert(tk.INSERT,str(t)+"\n")
-            for p in temppres:
-                self.wash_pres_display.insert(tk.INSERT,str(p)+"\n")
+            self.wash_time_value = re.sub("\n",",",self.wash_time_display.get(1.0,tk.END)) + "\n"
+            self.wash_pres_value = re.sub("\n",",",self.wash_pres_display.get(1.0,tk.END)) + "\n"
         
     def saveProtocol(self,protocol_type):
         if protocol_type == 'clean':
-            temptime = re.sub("\n",",",self.clean_time_display.get(1.0,tk.END)) + "\n"
-            temppres = re.sub("\n",",",self.clean_pres_display.get(1.0,tk.END)) + "\n"
-        else: # wash protocol
-            temptime = re.sub("\n",",",self.wash_time_display.get(1.0,tk.END)) + "\n"
-            temppres = re.sub("\n",",",self.wash_pres_display.get(1.0,tk.END)) + "\n"
+            self.updateProtocolValue('clean')
+            temptime = self.clean_time_value
+            temppres = self.clean_pres_value
+        else: # wash 
+            self.updateProtocolValue('wash')
+            temptime = self.wash_time_value
+            temppres = self.wash_pres_value
 
-        # print(temptime)
-        # print(temppres)
+        # Error catching: vectors must be same length
         if len(temptime) != len(temppres):
             showwarning("Warning","Time and pressure inputs are not the same length. Please adjust inputs and try again.")
-            return
-
-        name = filedialog.asksaveasfilename(filetypes=[('Comma separated variable', 'csv')],defaultextension='.csv')
-        f = open(name,"w")
-        f.write('Time [s]\n')
-        f.write(temptime)
-        f.write('Pressure [mBar]\n')
-        f.write(temppres)
-        f.close()
+        else: # vectors are same length, so write file
+            name = filedialog.asksaveasfilename(filetypes=[('Comma separated variable', 'csv')],defaultextension='.csv')
+            f = open(name,"w")
+            f.write('Time [s]\n')
+            f.write(temptime)
+            f.write('Pressure [mBar]\n')
+            f.write(temppres)
+            f.close()
 
     def cleanPipette(self):
         showinfo("Testing Clean Button",'Did this work...')
