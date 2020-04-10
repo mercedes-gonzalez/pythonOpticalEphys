@@ -27,6 +27,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolb
 from matplotlib.backend_bases import key_press_handler
 from tkinter.messagebox import showinfo, showwarning
 import random
+import re
 # GUI Formatting params
 # Colors
 sample_num = 0
@@ -115,13 +116,13 @@ class ephysTool(tk.Frame):
         
         self.wash_time_box = tk.Frame(self.WASH_FRAME,bg=wash_colors[boxc],relief=styles[1],borderwidth=1)
         self.wash_time_label = tk.Label(self.wash_time_box,bg=wash_colors[boxc],text="Time [s]")
-        self.wash_time_value = tk.Text(self.wash_time_box,bg=wash_colors[entryc],width=boxwidth)
-        self.wash_time_value.insert(tk.INSERT,'3\n10')
+        self.wash_time_display = tk.Text(self.wash_time_box,bg=wash_colors[entryc],width=boxwidth)
+        self.wash_time_display.insert(tk.INSERT,'3\n10')
         
         self.wash_pres_box = tk.Frame(self.WASH_FRAME,bg=wash_colors[boxc],relief=styles[1],borderwidth=1)
         self.wash_pres_label = tk.Label(self.wash_pres_box,bg=wash_colors[boxc],text="Pressure [mBar]")
-        self.wash_pres_value = tk.Text(self.wash_pres_box,bg=wash_colors[entryc],width=boxwidth)
-        self.wash_pres_value.insert(tk.INSERT,'3\n10')
+        self.wash_pres_display = tk.Text(self.wash_pres_box,bg=wash_colors[entryc],width=boxwidth)
+        self.wash_pres_display.insert(tk.INSERT,'3\n10')
 
         self.prewash = tk.IntVar()
         self.prewash.set(0)
@@ -137,13 +138,13 @@ class ephysTool(tk.Frame):
 
         self.clean_time_box = tk.Frame(self.CLEAN_FRAME,bg=clean_colors[boxc],relief=styles[1],borderwidth=1)
         self.clean_time_label = tk.Label(self.clean_time_box,bg=clean_colors[boxc],text="Time [s]")
-        self.clean_time_value = tk.Text(self.clean_time_box,bg=clean_colors[entryc],width=boxwidth)
-        self.clean_time_value.insert(tk.INSERT,'3\n10')
+        self.clean_time_display = tk.Text(self.clean_time_box,bg=clean_colors[entryc],width=boxwidth)
+        self.clean_time_display.insert(tk.INSERT,'3\n10')
         
         self.clean_pres_box = tk.Frame(self.CLEAN_FRAME,bg=clean_colors[boxc],relief=styles[1],borderwidth=1)
         self.clean_pres_label = tk.Label(self.clean_pres_box,bg=clean_colors[boxc],text="Pressure [mBar]")
-        self.clean_pres_value = tk.Text(self.clean_pres_box,bg=clean_colors[entryc],width=boxwidth)
-        self.clean_pres_value.insert(tk.INSERT,'3\n10')
+        self.clean_pres_display = tk.Text(self.clean_pres_box,bg=clean_colors[entryc],width=boxwidth)
+        self.clean_pres_display.insert(tk.INSERT,'3\n10')
 
         self.save_clean_btn = tk.Button(self.clean_controls_box,text='SAVE PROTOCOL',font=(btn_str),bg=clean_colors[btnc],command=lambda: self.saveProtocol('clean'))
         self.load_clean_btn = tk.Button(self.clean_controls_box,text='LOAD PROTOCOL',font=(btn_str),bg=clean_colors[btnc],command=lambda: self.loadProtocol('clean'))
@@ -361,11 +362,11 @@ class ephysTool(tk.Frame):
 
         self.wash_time_box.pack(side=tk.LEFT,fill=tk.Y,expand=1)
         self.wash_time_label.pack(side=tk.TOP,fill=tk.X,expand=0)
-        self.wash_time_value.pack(side=tk.TOP,fill=tk.Y,expand=0)
+        self.wash_time_display.pack(side=tk.TOP,fill=tk.Y,expand=0)
         
         self.wash_pres_box.pack(side=tk.RIGHT,fill=tk.Y,expand=1)
         self.wash_pres_label.pack(side=tk.TOP,fill=tk.X,expand=0)
-        self.wash_pres_value.pack(side=tk.TOP,fill=tk.Y,expand=0)
+        self.wash_pres_display.pack(side=tk.TOP,fill=tk.Y,expand=0)
 
 
         # CLEAN FRAME PACKING
@@ -378,11 +379,11 @@ class ephysTool(tk.Frame):
 
         self.clean_time_box.pack(side=tk.LEFT,fill=tk.Y,expand=1)
         self.clean_time_label.pack(side=tk.TOP,fill=tk.X,expand=0)
-        self.clean_time_value.pack(side=tk.TOP,fill=tk.Y,expand=0)
+        self.clean_time_display.pack(side=tk.TOP,fill=tk.Y,expand=0)
         
         self.clean_pres_box.pack(side=tk.RIGHT,fill=tk.Y,expand=1)
         self.clean_pres_label.pack(side=tk.TOP,fill=tk.X,expand=0)
-        self.clean_pres_value.pack(side=tk.TOP,fill=tk.Y,expand=0)
+        self.clean_pres_display.pack(side=tk.TOP,fill=tk.Y,expand=0)
 
 
         # LOCATIONS FRAME PACKING
@@ -531,26 +532,73 @@ class ephysTool(tk.Frame):
         self.washbath_x_value.set(int(contents[0][2]))
         self.washbath_y_value.set(int(contents[1][2]))
         self.washbath_z_value.set(int(contents[2][2]))
-
+    
+    def clearProtocolDisplay(self,disp):
+        if disp == 'clean':
+            self.clean_time_display.delete(1.0,tk.END)
+            self.clean_pres_display.delete(1.0,tk.END)
+        else: # wash
+            self.wash_time_display.delete(1.0,tk.END)
+            self.wash_pres_display.delete(1.0,tk.END)
+    
+    def setProtocol(self,time,pres,method):
+        if method == 'clean':
+            self.clean_time_value = time
+            self.clean_pres_value = pres
+            
+        else: # wash
+            self.wash_time_value = time
+            self.wash_pres_value = pres
+        
     def loadProtocol(self,protocol_type):
+        # Read file and parse
+        name = filedialog.askopenfilename(title='Select protocol file',filetypes=[('Comma separated variable', 'csv')],defaultextension='.csv')
+        f = open(name,"r")
+        data = f.read()
+        tempdata = re.split("\n",data)
+        
+        # Split by , ... Remove empty strings... map to integers! 
+        temptime = list(map(int,list(filter(None,re.split(",",tempdata[1])))))
+        temppres = list(map(int,list(filter(None,re.split(",",tempdata[3])))))
+        if len(temptime) != len(temppres):
+            showwarning("Warning","Time and pressure inputs from the selected file are not the same length. Please check the file and try again.")
+            return
+        # Clear display
+        self.clearProtocolDisplay(protocol_type)
+
         if protocol_type == 'clean':
-            print('loading clean')
+            self.setProtocol(temptime, temppres,'clean')
+            for t in temptime:
+                self.clean_time_display.insert(tk.INSERT,str(t)+"\n")
+            for p in temppres:
+                self.clean_pres_display.insert(tk.INSERT,str(p)+"\n")
         else: # wash protocol
-            print('loading wash')
+            self.setProtocol(temptime, temppres,'wash')
+            for t in temptime:
+                self.wash_time_display.insert(tk.INSERT,str(t)+"\n")
+            for p in temppres:
+                self.wash_pres_display.insert(tk.INSERT,str(p)+"\n")
         
     def saveProtocol(self,protocol_type):
+        if protocol_type == 'clean':
+            temptime = re.sub("\n",",",self.clean_time_display.get(1.0,tk.END)) + "\n"
+            temppres = re.sub("\n",",",self.clean_pres_display.get(1.0,tk.END)) + "\n"
+        else: # wash protocol
+            temptime = re.sub("\n",",",self.wash_time_display.get(1.0,tk.END)) + "\n"
+            temppres = re.sub("\n",",",self.wash_pres_display.get(1.0,tk.END)) + "\n"
+
+        # print(temptime)
+        # print(temppres)
+        if len(temptime) != len(temppres):
+            showwarning("Warning","Time and pressure inputs are not the same length. Please adjust inputs and try again.")
+            return
+
         name = filedialog.asksaveasfilename(filetypes=[('Comma separated variable', 'csv')],defaultextension='.csv')
         f = open(name,"w")
-        if protocol_type == 'clean':
-            f.write('Time [s]\n')
-            f.write(self.clean_time_value.get(1.0,tk.END))
-            f.write('Pressure [mBar]\n')
-            f.write(self.clean_pres_value.get(1.0,tk.END))
-        else: # wash protocol
-            print('saving wash')
-            f.write(self.wash_time_value.get(1.0,tk.END))
-            f.write('Pressure [mBar]\n')
-            f.write(self.wash_pres_value.get(1.0,tk.END))
+        f.write('Time [s]\n')
+        f.write(temptime)
+        f.write('Pressure [mBar]\n')
+        f.write(temppres)
         f.close()
 
     def cleanPipette(self):
