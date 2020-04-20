@@ -85,7 +85,7 @@ class ephysTool(tk.Frame):
         getCOMports(self)
 
         s = ttk.Style()
-        s.configure('TNotebook.Tab', font=('URW Gothic L','12','bold'),foreground="black",)
+        s.configure('TNotebook.Tab', font=('URW Gothic L','12','bold'),foreground="black")
 
         # Notebook
         self.tabs = ttk.Notebook(self.master)
@@ -489,6 +489,11 @@ class ephysTool(tk.Frame):
         self.tabs.pack(fill=tk.BOTH,expand=1)
 
 # Define GUI Functions
+    def getCOMports(self):
+        self.COMS_list = list(serialport.comports())
+        self.COMS_list = list(['lol','nothing works'])
+        return
+
     def goToLocation(self,loc):
         if loc == sample_num:
             self.status.set('Moving to sample')
