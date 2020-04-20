@@ -638,17 +638,17 @@ class ephysTool(tk.Frame):
     def cleanPipette(self):
         showinfo("Ready?",'Make sure that the pipette is at a safe location above the sample. Then press OK.')
 
-        self.status.set('Retracting from sample...')
-        time.sleep(2)
+        self.status.set('Initializing cleaning protocol...')
+        # # time.sleep(2)
 
-        self.status.set('Moving laterally to baths...')
-        time.sleep(2)
+        # self.status.set('Moving laterally to baths...')
+        # # time.sleep(2)
 
-        self.status.set('Axial movement to bath ...')
-        time.sleep(2)
+        # self.status.set('Axial movement to bath ...')
+        # # time.sleep(2)
         
-        self.status.set('Retracting from sample...')
-        time.sleep(2)
+        # self.status.set('Dip in bath...')
+        # # time.sleep(2)
         self.done_indicator.configure(background='green2')
 
     def stopCleaning(self):
