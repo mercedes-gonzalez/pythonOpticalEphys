@@ -21,7 +21,6 @@ import scipy.signal as sig
 import pyabf
 import matplotlib as plt
 import axographio as axo
-from cleanFuncts import * 
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.backend_bases import key_press_handler
@@ -39,33 +38,54 @@ abovewash_num = 4
 aboveclean_num = 5
 NOCOLOR = False
 if NOCOLOR:
+    # autocleaning colors
     wash_colors = ['snow','snow3','snow2','snow3','light grey']
     clean_colors = wash_colors
     locations_colors = wash_colors
     settings_colors = wash_colors
     controls_colors = wash_colors
     help_colors = wash_colors
+    # optoephys colors
+    camera_colors = wash_colors
+    plot_colors = wash_colors
+    connect_colors = wash_colors
+    ephys_settings_colors = wash_colors
 else:
+    # autocleaning colors
     wash_colors = ['peach puff','firebrick1','firebrick2','firebrick3','firebrick4']
     clean_colors = ['navajo white','DarkOrange1','DarkOrange2','DarkOrange3','DarkOrange4']
     locations_colors = ['lemon chiffon','goldenrod1','goldenrod2','goldenrod3','goldenrod4']
     settings_colors = ['mint cream','green','green1','green3','green4']
     controls_colors = ['lavender','MediumPurple1','MediumPurple2','MediumPurple3','MediumPurple4']
     help_colors = ['alice blue','RoyalBlue1','RoyalBlue2','RoyalBlue3','RoyalBlue4']
+    # optoephys colors
+    camera_colors = wash_colors 
+    plot_colors = wash_colors
+    connect_colors = wash_colors
+    ephys_settings_colors = wash_colors
+
+# color indexing
 entryc = 0
 btnc = 1
 boxc = 2
 framec = 3
 tabc = 4
-boxwidth = 14
+
+
+# Text formatting
 title_str = 'Arial 11 bold'
 label_str = 'Arial 9'
 btn_str = 'Arial 9 bold'
+
+# other general formatting
 styles = ['flat','raised','sunken','groove','ridge']
+boxwidth = 14
 sty = 3
 size = 3
 xpad = 5
 ypad = 2
+
+# strings 
 INIT_STATUS_STR = 'Click CLEAN to begin.'
 NULL_DIR_STR = "* SET DIRECTORY *"
 instruction_text = """
@@ -82,7 +102,7 @@ class ephysTool(tk.Frame):
         tk.Frame.__init__(self,master)
         master.title("MG Electrophysiology Tool")
         self.master = master
-        getCOMports(self)
+        # self.getCOMports()
 
         s = ttk.Style()
         s.configure('TNotebook.Tab', font=('URW Gothic L','12','bold'),foreground="black")
@@ -91,8 +111,8 @@ class ephysTool(tk.Frame):
         self.tabs = ttk.Notebook(self.master)
 
         # DEFINE CLEANING FRAMES
-        self.CLEAN_TAB = tk.Frame(self.tabs,bg='snow3',relief=styles[sty],borderwidth=size)
-        self.tabs.add(self.CLEAN_TAB,text=' | AUTO-CLEANING | ')
+        self.CLEAN_TAB = tk.Frame(self.tabs,bg=controls_colors[3],relief=styles[sty],borderwidth=size)
+        self.tabs.add(self.CLEAN_TAB,text='   | AUTO-CLEANING |   ')
         
         self.CONTROLS_FRAME = tk.Frame(self.CLEAN_TAB,bg=controls_colors[framec],relief=styles[sty],borderwidth=size)
         self.WASH_FRAME = tk.Frame(self.CLEAN_TAB,bg=wash_colors[framec],relief=styles[sty],borderwidth=size)
@@ -336,11 +356,17 @@ class ephysTool(tk.Frame):
         
         # DEFINE OPTOEPHYS FRAME
         self.OPTOEPHYS_TAB = tk.Frame(self.tabs,bg='snow3',relief=styles[sty],borderwidth=size)
-        self.tabs.add(self.OPTOEPHYS_TAB,text=' | OPTIX + EPHYS | ')
+        self.tabs.add(self.OPTOEPHYS_TAB,text='   | OPTIX + EPHYS |   ')
 
+        # OPTOEPHYS FRAMES
+        self.CAMERA_FRAME = tk.Frame(self.OPTOEPHYS_TAB,bg=camera_colors[framec],relief=styles[sty],borderwidth=size)
+        self.PLOT_FRAME = tk.Frame(self.OPTOEPHYS_TAB,bg=plot_colors[framec],relief=styles[sty],borderwidth=size)
+        self.CONNECT_FRAME = tk.Frame(self.OPTOEPHYS_TAB,bg=connect_colors[framec],relief=styles[sty],borderwidth=size)
+        self.EPHYS_SETTINGS_FRAME = tk.Frame(self.OPTOEPHYS_TAB,bg=ephys_settings_colors[framec],relief=styles[sty],borderwidth=size)
+        
         # DEFINE HELP FRAME
         self.HELP_TAB = tk.Frame(self.tabs,bg='snow3',relief=styles[sty],borderwidth=size)
-        self.tabs.add(self.HELP_TAB,text=' | HELP | ')
+        self.tabs.add(self.HELP_TAB,text='   | HELP |   ')
 
         self.instructions_label = tk.Label(self.HELP_TAB, text="Instructions",font=(title_str),bg=help_colors[framec])
         self.help_label = tk.Label(self.HELP_TAB,text=instruction_text,font=(label_str),bg=help_colors[boxc])
@@ -489,10 +515,10 @@ class ephysTool(tk.Frame):
         self.tabs.pack(fill=tk.BOTH,expand=1)
 
 # Define GUI Functions
-    def getCOMports(self):
-        self.COMS_list = list(serialport.comports())
-        self.COMS_list = list(['lol','nothing works'])
-        return
+    # def getCOMports(self):
+    #     self.COMS_list = list(serialport.comports())
+    #     self.COMS_list = list(['lol','nothing works'])
+    #     return
 
     def goToLocation(self,loc):
         if loc == sample_num:
