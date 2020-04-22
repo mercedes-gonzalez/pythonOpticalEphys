@@ -62,7 +62,7 @@ else:
     # optoephys colors
     # camera_colors = ['peach puff','firebrick1','firebrick2','firebrick3','firebrick4'] # don't use red here. 
     camera_colors = ['snow','snow2','snow3','snow4','light grey'] # grey is good
-    plot_colors = ['navajo white','DarkOrange1','DarkOrange2','DarkOrange3','DarkOrange4']
+    plot_colors = ['antique white','AntiqueWhite1','AntiqueWhite2','AntiqueWhite3','AntiqueWhite4']
     connect_colors = ['lemon chiffon','goldenrod1','goldenrod2','goldenrod3','goldenrod4']
     ephys_settings_colors = ['light salmon','IndianRed1','IndianRed1','IndianRed1','IndianRed1']
     # help tab colors
@@ -544,8 +544,8 @@ class ephysTool(tk.Frame):
         # OPTOEPHYS PACKING
         self.CONNECT_FRAME.pack(side=tk.BOTTOM,fill=tk.BOTH,expand=1,padx=xpad,pady=ypad)
         self.EPHYS_SETTINGS_FRAME.pack(side=tk.BOTTOM,fill=tk.BOTH,expand=1,padx=xpad,pady=ypad)
-        self.CAMERA_FRAME.pack(side=tk.LEFT,fill=tk.X,expand=1,padx=xpad,pady=ypad)
-        self.PLOT_FRAME.pack(side=tk.LEFT,fill=tk.X,expand=1,padx=xpad,pady=ypad)
+        self.CAMERA_FRAME.pack(side=tk.LEFT,fill=tk.BOTH,expand=1,padx=xpad,pady=ypad)
+        self.PLOT_FRAME.pack(side=tk.LEFT,fill=tk.BOTH,expand=1,padx=xpad,pady=ypad)
         
         # camera frame packing
         self.camera_label.pack(side=tk.TOP,fill=tk.X,expand=1,padx=xpad,pady=ypad)
@@ -556,7 +556,7 @@ class ephysTool(tk.Frame):
         
         # Pack plot because it's not in a frame
         self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
-        self.toolbar.pack(side=tk.TOP,fill=tk.BOTH,expand=1)
+        self.toolbar.pack(side=tk.BOTTOM,fill=tk.BOTH,expand=1)
 
         # connections frame packing
         self.connect_label.pack(side=tk.TOP,fill=tk.X,expand=1,padx=xpad,pady=ypad)
@@ -572,6 +572,17 @@ class ephysTool(tk.Frame):
         
         # Pack the tabs
         self.tabs.pack(fill=tk.BOTH,expand=1)
+
+        # After everything is packed, initialize some things: 
+
+        # Configure Plot Initially
+        self.ax = self.fig.add_subplot(111)
+        self.ax.clear()
+        # self.ax.set_facecolor('xkcd:AntiqueWhite2')
+        self.ax.set_ylabel('Voltage [mV]')
+        self.ax.set_xlabel('Time [s]')
+        box = self.ax.get_position()
+        self.ax.set_position([box.x0, box.y0, box.width*.75, box.height])
 # __________________________________________________________________________________________________________________________
 # __________________________________________________________________________________________________________________________
 #       Define GUI Functions
@@ -767,7 +778,7 @@ class ephysTool(tk.Frame):
             return False
 
 root = tk.Tk()
-root.geometry("800x600+700+50") #width x height + x and y screen dims
+root.geometry("1000x700+500+50") #width x height + x and y screen dims
 # root.configure(bg=bg_color)
 my_gui = ephysTool(root)
 root.mainloop()
