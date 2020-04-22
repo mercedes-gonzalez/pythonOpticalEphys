@@ -60,7 +60,8 @@ else:
     settings_colors = ['thistle','MediumOrchid1','MediumOrchid2','MediumOrchid3','MediumOrchid4']
     controls_colors = ['snow','snow2','snow3','snow4','light grey']
     # optoephys colors
-    camera_colors = ['peach puff','firebrick1','firebrick2','firebrick3','firebrick4']
+    # camera_colors = ['peach puff','firebrick1','firebrick2','firebrick3','firebrick4'] # don't use red here. 
+    camera_colors = ['snow','snow2','snow3','snow4','light grey'] # grey is good
     plot_colors = ['navajo white','DarkOrange1','DarkOrange2','DarkOrange3','DarkOrange4']
     connect_colors = ['lemon chiffon','goldenrod1','goldenrod2','goldenrod3','goldenrod4']
     ephys_settings_colors = ['light salmon','IndianRed1','IndianRed1','IndianRed1','IndianRed1']
@@ -371,15 +372,24 @@ class ephysTool(tk.Frame):
 
         # OPTOEPHYS WIDGETS
         # Camera frame widgets
+        wid = 500
+        hei = 500
         self.camera_label = tk.Label(self.CAMERA_FRAME, text="CAMERA VIEWPORT",font=(title_str),bg=camera_colors[framec])
-        self.camera_canvas = tk.Canvas(self.CAMERA_FRAME, width=500,height=500)
-        pth = "C:/Users/mgonzalez91/Dropbox (GaTech)/Research/All Things Emory !/pythonOpticalEphys repo/repo/pythonOpticalEphys/temp_img.png"
-        self.temp_img = ImageTk.PhotoImage(Image.open("temp_img.png"))
-        self.camera_canvas.create_image(250,250,image=self.temp_img)
+        self.camera_canvas = tk.Canvas(self.CAMERA_FRAME, width=wid,height=hei)
+        # pth = "C:/Users/mgonzalez91/Dropbox (GaTech)/Research/All Things Emory !/pythonOpticalEphys repo/repo/pythonOpticalEphys/temp_img.png"
+        self.temp_img = ImageTk.PhotoImage(Image.open("temp_img.png")) # temporary image, use input from camera here. 
+        self.camera_canvas.create_image(wid/2,hei/2,image=self.temp_img)
         
         # plot frame widgets
         self.plots_label = tk.Label(self.PLOT_FRAME, text="PLOTS",font=(title_str),bg=plot_colors[framec])
         
+        # plot 
+        self.fig = Figure(figsize=(5, 4), dpi=100)
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.PLOT_FRAME)  # A tk.DrawingArea.
+        self.canvas.draw()
+        self.toolbar = NavigationToolbar2Tk(self.canvas, self.PLOT_FRAME)
+        self.toolbar.update()
+
         # connect frame widgets
         self.connect_label = tk.Label(self.CONNECT_FRAME, text="CONNECTIONS",font=(title_str),bg=connect_colors[framec])
         
@@ -544,6 +554,10 @@ class ephysTool(tk.Frame):
         # plot frame packing
         self.plots_label.pack(side=tk.TOP,fill=tk.X,expand=1,padx=xpad,pady=ypad)
         
+        # Pack plot because it's not in a frame
+        self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+        self.toolbar.pack(side=tk.TOP,fill=tk.BOTH,expand=1)
+
         # connections frame packing
         self.connect_label.pack(side=tk.TOP,fill=tk.X,expand=1,padx=xpad,pady=ypad)
         
@@ -558,8 +572,10 @@ class ephysTool(tk.Frame):
         
         # Pack the tabs
         self.tabs.pack(fill=tk.BOTH,expand=1)
+# __________________________________________________________________________________________________________________________
+# __________________________________________________________________________________________________________________________
+#       Define GUI Functions
 
-# Define GUI Functions
     # def getCOMports(self):
     #     self.COMS_list = list(serialport.comports())
     #     self.COMS_list = list(['lol','nothing works'])
@@ -758,10 +774,6 @@ root.mainloop()
 
 '''
     TODO: WITHOUT SUTTER
-    - buttons have bold text, text entries are white, labels are not bold. 
-    - read times/pressures from text() boxes from a list
-    - save protocols (to csv)
-    - load protocols (from csv)
     - calculate retracting movements
     - load available COM ports and import to control list
     - determine multiclamp handle
@@ -785,6 +797,10 @@ root.mainloop()
     - looks pretty good. 
     - load locations (from csv)
     - save locations (to csv)
+    - buttons have bold text, text entries are white, labels are not bold. 
+    - read times/pressures from text() boxes from a list
+    - save protocols (to csv)
+    - load protocols (from csv)
     
 
 '''
