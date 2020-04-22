@@ -25,6 +25,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.backend_bases import key_press_handler
 from tkinter.messagebox import showinfo, showwarning
+from PIL import ImageTk, Image
 import random #randomize locations for now
 import re # regex 
 import time # for sleeps
@@ -44,26 +45,27 @@ if NOCOLOR:
     locations_colors = wash_colors
     settings_colors = wash_colors
     controls_colors = wash_colors
-    help_colors = wash_colors
     # optoephys colors
     camera_colors = wash_colors
     plot_colors = wash_colors
     connect_colors = wash_colors
     ephys_settings_colors = wash_colors
+    # help tab colors
+    help_colors = wash_colors
 else:
     # autocleaning colors
-    wash_colors = ['peach puff','firebrick1','firebrick2','firebrick3','firebrick4']
-    clean_colors = ['navajo white','DarkOrange1','DarkOrange2','DarkOrange3','DarkOrange4']
-    locations_colors = ['lemon chiffon','goldenrod1','goldenrod2','goldenrod3','goldenrod4']
-    settings_colors = ['mint cream','green','green1','green3','green4']
-    controls_colors = ['lavender','MediumPurple1','MediumPurple2','MediumPurple3','MediumPurple4']
-    help_colors = ['alice blue','RoyalBlue1','RoyalBlue2','RoyalBlue3','RoyalBlue4']
+    wash_colors = ['lavender','SlateBlue1','SlateBlue2','SlateBlue3','SlateBlue4']
+    clean_colors = ['lavender','MediumPurple1','MediumPurple2','MediumPurple3','MediumPurple4']
+    locations_colors = ['alice blue','RoyalBlue1','RoyalBlue2','RoyalBlue3','RoyalBlue4']
+    settings_colors = ['thistle','MediumOrchid1','MediumOrchid2','MediumOrchid3','MediumOrchid4']
+    controls_colors = ['snow','snow2','snow3','snow4','light grey']
     # optoephys colors
-    camera_colors = wash_colors 
-    plot_colors = wash_colors
-    connect_colors = wash_colors
-    ephys_settings_colors = wash_colors
-
+    camera_colors = ['peach puff','firebrick1','firebrick2','firebrick3','firebrick4']
+    plot_colors = ['navajo white','DarkOrange1','DarkOrange2','DarkOrange3','DarkOrange4']
+    connect_colors = ['lemon chiffon','goldenrod1','goldenrod2','goldenrod3','goldenrod4']
+    ephys_settings_colors = ['light salmon','IndianRed1','IndianRed1','IndianRed1','IndianRed1']
+    # help tab colors
+    help_colors = ['gray80','gray70','gray50','gray40','gray50']
 # color indexing
 entryc = 0
 btnc = 1
@@ -206,7 +208,7 @@ class ephysTool(tk.Frame):
         # Sample location GO
         self.sample_go_btn = tk.Button(self.sample_location_box,text='GO',font=(btn_str),bg=locations_colors[btnc],command=lambda: self.goToLocation(sample_num))
 
-        # ------------------------------------
+        # -------------
         # Above baths location
         self.abovebath_location_box = tk.Frame(self.LOCATIONS_FRAME,bg=locations_colors[framec],relief=styles[0],borderwidth=1)
         self.abovebath_location_btn = tk.Button(self.abovebath_location_box, text="Above Bath Location:",font=(btn_str),bg=locations_colors[boxc],command=lambda: self.setLocation(abovebath_num))
@@ -229,7 +231,7 @@ class ephysTool(tk.Frame):
         # Above baths location GO
         self.abovebath_go_btn = tk.Button(self.abovebath_location_box,text='GO',font=(btn_str),bg=locations_colors[btnc],command=lambda: self.goToLocation(abovebath_num))
 
-        # ------------------------------------
+        # -------------
         # Wash bath location
         self.washbath_location_box = tk.Frame(self.LOCATIONS_FRAME,bg=locations_colors[framec],relief=styles[1],borderwidth=1)
         self.washbath_location_btn = tk.Button(self.washbath_location_box, text="Wash Bath Location:",font=(btn_str),bg=locations_colors[boxc],command=lambda: self.setLocation(washbath_num))
@@ -251,7 +253,7 @@ class ephysTool(tk.Frame):
 
         # Wash bath location GO
         self.washbath_go_btn = tk.Button(self.washbath_location_box,text='GO',font=(btn_str),bg=locations_colors[btnc],command=lambda: self.goToLocation(washbath_num))
-        # ------------------------------------
+        # -------------
         # Clean bath location
         self.cleanbath_location_box = tk.Frame(self.LOCATIONS_FRAME,bg=locations_colors[framec],relief=styles[0],borderwidth=1)
         self.cleanbath_location_btn = tk.Button(self.cleanbath_location_box, text="Clean Bath Location:",font=(btn_str),bg=locations_colors[boxc],command=lambda: self.setLocation(cleanbath_num))
@@ -274,7 +276,7 @@ class ephysTool(tk.Frame):
         # Clean bath location GO
         self.cleanbath_go_btn = tk.Button(self.cleanbath_location_box,text='GO',font=(btn_str),bg=locations_colors[btnc],command=lambda: self.goToLocation(cleanbath_num))
 
-        # ------------------------------------
+        # -------------
         # Above wash bath location
         self.abovewash_location_box = tk.Frame(self.LOCATIONS_FRAME,bg=locations_colors[framec],relief=styles[0],borderwidth=1)
         self.abovewash_location_label = tk.Label(self.abovewash_location_box, text="Above Wash Location:",font=(label_str),bg=locations_colors[framec])
@@ -297,7 +299,7 @@ class ephysTool(tk.Frame):
         # Above wash bath location GO
         self.abovewash_go_btn = tk.Button(self.abovewash_location_box,text='GO',font=(btn_str),bg=locations_colors[btnc],command=lambda: self.goToLocation(abovewash_num))
 
-        # ------------------------------------
+        # -------------
         # Above clean bath location
         self.aboveclean_location_box = tk.Frame(self.LOCATIONS_FRAME,bg=locations_colors[framec],relief=styles[0],borderwidth=1)
         self.aboveclean_location_label = tk.Label(self.aboveclean_location_box, text="Above Clean Location:",font=(label_str),bg=locations_colors[framec])
@@ -320,7 +322,7 @@ class ephysTool(tk.Frame):
         # Above Clean bath location GO
         self.aboveclean_go_btn = tk.Button(self.aboveclean_location_box,text='GO',font=(btn_str),bg=locations_colors[btnc],command=lambda: self.goToLocation(aboveclean_num))
 
-        # ------------------------------------
+        # -------------
         # SETTINGS FRAME WIDGETS
         self.settings_title = tk.Label(self.SETTINGS_FRAME, text="SETTINGS",font=(title_str),bg=settings_colors[framec])
         
@@ -353,6 +355,9 @@ class ephysTool(tk.Frame):
         self.multiclamp_label = tk.Label(self.multiclamp_box, text="Multiclamp Handle: ",font=(label_str),bg=settings_colors[framec])
         
         # self.help_btn = tk.Button(self.SETTINGS_FRAME,text='Help',bg=settings_colors[btnc],command=self.popup_help)
+# --------------------------------------------------------------------
+# --------------------------------------------------------------------
+#       Optical Electrophysiology Tab
         
         # DEFINE OPTOEPHYS FRAME
         self.OPTOEPHYS_TAB = tk.Frame(self.tabs,bg='snow3',relief=styles[sty],borderwidth=size)
@@ -363,6 +368,23 @@ class ephysTool(tk.Frame):
         self.PLOT_FRAME = tk.Frame(self.OPTOEPHYS_TAB,bg=plot_colors[framec],relief=styles[sty],borderwidth=size)
         self.CONNECT_FRAME = tk.Frame(self.OPTOEPHYS_TAB,bg=connect_colors[framec],relief=styles[sty],borderwidth=size)
         self.EPHYS_SETTINGS_FRAME = tk.Frame(self.OPTOEPHYS_TAB,bg=ephys_settings_colors[framec],relief=styles[sty],borderwidth=size)
+
+        # OPTOEPHYS WIDGETS
+        # Camera frame widgets
+        self.camera_label = tk.Label(self.CAMERA_FRAME, text="CAMERA VIEWPORT",font=(title_str),bg=camera_colors[framec])
+        self.camera_canvas = tk.Canvas(self.CAMERA_FRAME, width=500,height=500)
+        pth = "C:/Users/mgonzalez91/Dropbox (GaTech)/Research/All Things Emory !/pythonOpticalEphys repo/repo/pythonOpticalEphys/temp_img.png"
+        self.temp_img = ImageTk.PhotoImage(Image.open("temp_img.png"))
+        self.camera_canvas.create_image(250,250,image=self.temp_img)
+        
+        # plot frame widgets
+        self.plots_label = tk.Label(self.PLOT_FRAME, text="PLOTS",font=(title_str),bg=plot_colors[framec])
+        
+        # connect frame widgets
+        self.connect_label = tk.Label(self.CONNECT_FRAME, text="CONNECTIONS",font=(title_str),bg=connect_colors[framec])
+        
+        # ephys frame widgets
+        self.ephys_settings_label = tk.Label(self.EPHYS_SETTINGS_FRAME, text="SETTINGS",font=(title_str),bg=ephys_settings_colors[framec])
         
         # DEFINE HELP FRAME
         self.HELP_TAB = tk.Frame(self.tabs,bg='snow3',relief=styles[sty],borderwidth=size)
@@ -370,9 +392,10 @@ class ephysTool(tk.Frame):
 
         self.instructions_label = tk.Label(self.HELP_TAB, text="Instructions",font=(title_str),bg=help_colors[framec])
         self.help_label = tk.Label(self.HELP_TAB,text=instruction_text,font=(label_str),bg=help_colors[boxc])
-# _____________________________________________________
-# _____________________________________________________
-#               PACKING 
+# __________________________________________________________________________________________________________
+# __________________________________________________________________________________________________________
+# ______ PACKING _______
+
 
         # CONTROLS FRAME PACKING
         self.CONTROLS_FRAME.pack(side=tk.TOP,fill=tk.X,expand=0)
@@ -506,11 +529,33 @@ class ephysTool(tk.Frame):
         self.multiclamp_box.pack(side=tk.TOP,fill=tk.X,expand=0,padx=xpad,pady=ypad)
         self.multiclamp_label.pack(side=tk.LEFT,fill=tk.BOTH,expand=0)
         self.multiclamp_entry.pack(side=tk.LEFT,fill=tk.BOTH,expand=1)
+# ---------------------------------------------------------------------
+# ---------------------------------------------------------------------
+        # OPTOEPHYS PACKING
+        self.CONNECT_FRAME.pack(side=tk.BOTTOM,fill=tk.BOTH,expand=1,padx=xpad,pady=ypad)
+        self.EPHYS_SETTINGS_FRAME.pack(side=tk.BOTTOM,fill=tk.BOTH,expand=1,padx=xpad,pady=ypad)
+        self.CAMERA_FRAME.pack(side=tk.LEFT,fill=tk.X,expand=1,padx=xpad,pady=ypad)
+        self.PLOT_FRAME.pack(side=tk.LEFT,fill=tk.X,expand=1,padx=xpad,pady=ypad)
+        
+        # camera frame packing
+        self.camera_label.pack(side=tk.TOP,fill=tk.X,expand=1,padx=xpad,pady=ypad)
+        self.camera_canvas.pack(side=tk.TOP,expand=0)
 
+        # plot frame packing
+        self.plots_label.pack(side=tk.TOP,fill=tk.X,expand=1,padx=xpad,pady=ypad)
+        
+        # connections frame packing
+        self.connect_label.pack(side=tk.TOP,fill=tk.X,expand=1,padx=xpad,pady=ypad)
+        
+        # ephys settings frame packing
+        self.ephys_settings_label.pack(side=tk.TOP,fill=tk.X,expand=1,padx=xpad,pady=ypad)
+        
         # self.help_btn.pack(anchor=tk.SE,expand=0,padx=xpad,pady=ypad)
+        
         # HELP PACKING
         self.instructions_label.pack(side=tk.TOP,fill=tk.X,expand=0,padx=xpad,pady=ypad)
         self.help_label.pack(side=tk.TOP,fill=tk.BOTH,expand=0,padx=xpad,pady=ypad)
+        
         # Pack the tabs
         self.tabs.pack(fill=tk.BOTH,expand=1)
 
@@ -706,7 +751,7 @@ class ephysTool(tk.Frame):
             return False
 
 root = tk.Tk()
-root.geometry("800x600+50+100") #width x height + x and y screen dims
+root.geometry("800x600+700+50") #width x height + x and y screen dims
 # root.configure(bg=bg_color)
 my_gui = ephysTool(root)
 root.mainloop()
