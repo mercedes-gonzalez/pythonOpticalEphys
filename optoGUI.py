@@ -368,18 +368,26 @@ class ephysTool(tk.Frame):
         self.CAMERA_FRAME = tk.Frame(self.OPTOEPHYS_TAB,bg=camera_colors[framec],relief=styles[sty],borderwidth=size)
         self.PLOT_FRAME = tk.Frame(self.OPTOEPHYS_TAB,bg=plot_colors[framec],relief=styles[sty],borderwidth=size)
         self.CONNECT_FRAME = tk.Frame(self.OPTOEPHYS_TAB,bg=connect_colors[framec],relief=styles[sty],borderwidth=size)
-        self.EPHYS_SETTINGS_FRAME = tk.Frame(self.OPTOEPHYS_TAB,bg=ephys_settings_colors[framec],relief=styles[sty],borderwidth=size)
 
         # OPTOEPHYS WIDGETS
         # Camera frame widgets
         wid = 500
         hei = 500
         self.camera_label = tk.Label(self.CAMERA_FRAME, text="CAMERA VIEWPORT",font=(title_str),bg=camera_colors[framec])
-        self.camera_canvas = tk.Canvas(self.CAMERA_FRAME, width=wid,height=hei)
+        self.camera_canvas = tk.Canvas(self.CAMERA_FRAME, width=wid,height=hei,bg=camera_colors[framec])
         # pth = "C:/Users/mgonzalez91/Dropbox (GaTech)/Research/All Things Emory !/pythonOpticalEphys repo/repo/pythonOpticalEphys/temp_img.png"
         self.temp_img = ImageTk.PhotoImage(Image.open("temp_img.png")) # temporary image, use input from camera here. 
         self.camera_canvas.create_image(wid/2,hei/2,image=self.temp_img)
         
+        # Sample rate
+        self.samplerate_box = tk.Frame(self.CAMERA_FRAME,bg=camera_colors[framec],relief=styles[0],borderwidth=1)
+        self.samplerate_value = tk.DoubleVar()
+        self.samplerate_value.set(100) # default sample rate
+        self.samplerate_value.trace_add("write", self.samplerateChange)
+        self.samplerate_label = tk.Label(self.samplerate_box, text="Sample Rate [Hz]:",bg=camera_colors[framec])
+        vcmd = self.master.register(self.validate) # we have to wrap the command
+        self.samplerate_entry = tk.Entry(self.samplerate_box, text=self.samplerate_value,validate="key", validatecommand=(vcmd, '%P'),bg=camera_colors[entryc])
+
         # plot frame widgets
         self.plots_label = tk.Label(self.PLOT_FRAME, text="PLOTS",font=(title_str),bg=plot_colors[framec])
         
@@ -392,10 +400,18 @@ class ephysTool(tk.Frame):
 
         # connect frame widgets
         self.connect_label = tk.Label(self.CONNECT_FRAME, text="CONNECTIONS",font=(title_str),bg=connect_colors[framec])
-        
-        # ephys frame widgets
-        self.ephys_settings_label = tk.Label(self.EPHYS_SETTINGS_FRAME, text="SETTINGS",font=(title_str),bg=ephys_settings_colors[framec])
-        
+                
+        # MODE frame
+        self.MODE_FRAME = tk.Frame(self.CONNECT_FRAME, height=100,width=200,bg=connect_colors[framec],relief=styles[sty],borderwidth = size)
+        self.mode = tk.IntVar() # 0 is auto, 1 is manual
+        self.mode.set(0)
+        self.modes = {"Auto" : "0", "Manual" : "1"}
+        self.mode.trace_add("write", self.modeChange)
+
+        # Buttons
+        self.auto_button = tk.Radiobutton(self.MODE_FRAME,text="Auto",variable=self.mode,value=0,bg=connect_colors[framec])
+        self.manual_button = tk.Radiobutton(self.MODE_FRAME,text="Manual",variable=self.mode,value=1,bg=connect_colors[framec])
+
         # DEFINE HELP FRAME
         self.HELP_TAB = tk.Frame(self.tabs,bg='snow3',relief=styles[sty],borderwidth=size)
         self.tabs.add(self.HELP_TAB,text='   | HELP |   ')
@@ -424,7 +440,6 @@ class ephysTool(tk.Frame):
         self.status_box.pack(side=tk.LEFT,fill=tk.BOTH,expand=1,padx=xpad,pady=ypad)
         self.status_label.pack(side=tk.LEFT,fill=tk.Y,expand=0,padx=xpad,pady=ypad)
         self.status_display.pack(side=tk.LEFT,fill=tk.BOTH,expand=1,padx=xpad,pady=ypad)
-              
 
         # WASH FRAME PACKING
         self.WASH_FRAME.pack(side=tk.LEFT,fill=tk.Y,expand=0)
@@ -542,15 +557,16 @@ class ephysTool(tk.Frame):
 # ---------------------------------------------------------------------
 # ---------------------------------------------------------------------
         # OPTOEPHYS PACKING
-        self.CONNECT_FRAME.pack(side=tk.BOTTOM,fill=tk.BOTH,expand=1,padx=xpad,pady=ypad)
-        self.EPHYS_SETTINGS_FRAME.pack(side=tk.BOTTOM,fill=tk.BOTH,expand=1,padx=xpad,pady=ypad)
-        self.CAMERA_FRAME.pack(side=tk.LEFT,fill=tk.BOTH,expand=1,padx=xpad,pady=ypad)
-        self.PLOT_FRAME.pack(side=tk.LEFT,fill=tk.BOTH,expand=1,padx=xpad,pady=ypad)
+        self.CAMERA_FRAME.pack(side=tk.LEFT,fill=tk.BOTH,anchor=tk.NW,expand=0,padx=xpad,pady=ypad)
+        self.PLOT_FRAME.pack(side=tk.TOP,fill=tk.BOTH,anchor=tk.NE,expand=0,padx=xpad,pady=ypad)
+        self.CONNECT_FRAME.pack(side=tk.LEFT,fill=tk.BOTH,anchor=tk.SW,expand=1,padx=xpad,pady=ypad)
         
         # camera frame packing
-        self.camera_label.pack(side=tk.TOP,fill=tk.X,expand=1,padx=xpad,pady=ypad)
         self.camera_canvas.pack(side=tk.TOP,expand=0)
-
+        self.camera_label.pack(side=tk.TOP,fill=tk.X,expand=0,padx=xpad,pady=ypad)
+        self.samplerate_box.pack(side=tk.TOP,fill=tk.X,expand=0,padx=xpad,pady=ypad)
+        self.samplerate_label.pack(side=tk.LEFT,expand=0)
+        self.samplerate_entry.pack(side=tk.LEFT,fill=tk.X,expand=0)
         # plot frame packing
         self.plots_label.pack(side=tk.TOP,fill=tk.X,expand=1,padx=xpad,pady=ypad)
         
@@ -560,10 +576,10 @@ class ephysTool(tk.Frame):
 
         # connections frame packing
         self.connect_label.pack(side=tk.TOP,fill=tk.X,expand=1,padx=xpad,pady=ypad)
-        
-        # ephys settings frame packing
-        self.ephys_settings_label.pack(side=tk.TOP,fill=tk.X,expand=1,padx=xpad,pady=ypad)
-        
+        self.MODE_FRAME.pack(side=tk.TOP,fill=tk.Y)       
+        self.auto_button.pack(side=tk.TOP,fill=tk.Y,expand=1,anchor=tk.E)
+        self.manual_button.pack(side=tk.TOP,fill=tk.Y,expand=1,anchor=tk.E)
+
         # self.help_btn.pack(anchor=tk.SE,expand=0,padx=xpad,pady=ypad)
         
         # HELP PACKING
@@ -591,6 +607,29 @@ class ephysTool(tk.Frame):
     #     self.COMS_list = list(serialport.comports())
     #     self.COMS_list = list(['lol','nothing works'])
     #     return
+    def validate(self, new_text):
+        if not new_text: # the field is being cleared
+            self.entered_number = 0
+            return True
+        try:
+            self.entered_number = int(new_text)
+            return True
+        except ValueError:
+            return False
+    def samplerateChange(self,*args):
+        print('sample rate changed.')
+
+    def modeChange(self, *args):
+        # Set up plot axes
+        self.ax = self.fig.add_subplot(111)
+        self.ax.clear()
+        self.ax.set_ylabel('Firing Frequency [Hz]')
+        self.ax.set_xlabel('Current Density [pA/pF]')
+
+        # If there is a directory selected, update plot, otherwise do nothing. 
+        if self.directory != NULL_DIR_STR:
+            self.updatePlot()
+        self.canvas.draw()
 
     def goToLocation(self,loc):
         if loc == sample_num:
