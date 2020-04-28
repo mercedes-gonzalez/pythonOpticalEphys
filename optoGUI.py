@@ -815,7 +815,7 @@ class ephysTool(tk.Frame):
             return True
         except ValueError:
             return False
-
+    
 root = tk.Tk()
 root.geometry("1000x700+500+50") #width x height + x and y screen dims
 # root.configure(bg=bg_color)
