@@ -403,14 +403,17 @@ class ephysTool(tk.Frame):
                 
         # MODE frame
         self.MODE_FRAME = tk.Frame(self.CONNECT_FRAME, height=100,width=200,bg=connect_colors[framec],relief=styles[sty],borderwidth = size)
-        self.mode = tk.IntVar() # 0 is auto, 1 is manual
+        self.mode = tk.IntVar() # 0 is auto-all, 1 auto-handpick, 2 is manual
         self.mode.set(0)
-        self.modes = {"Auto" : "0", "Manual" : "1"}
         self.mode.trace_add("write", self.modeChange)
 
         # Buttons
-        self.auto_button = tk.Radiobutton(self.MODE_FRAME,text="Auto",variable=self.mode,value=0,bg=connect_colors[framec])
-        self.manual_button = tk.Radiobutton(self.MODE_FRAME,text="Manual",variable=self.mode,value=1,bg=connect_colors[framec])
+        self.auto_all_button = tk.Radiobutton(self.MODE_FRAME,text="Auto [all]",variable=self.mode,value=0,bg=connect_colors[framec])
+        self.auto_select_button = tk.Radiobutton(self.MODE_FRAME,text="Auto [select]",variable=self.mode,value=1,bg=connect_colors[framec])
+        self.manual_button = tk.Radiobutton(self.MODE_FRAME,text="Manual",variable=self.mode,value=2,bg=connect_colors[framec])
+
+        # Camera control (temporarily just reading tifs)
+        self.camera_power = tk.Button(self.CONNECT_FRAME,text='Camera',font=(btn_str),bg=connect_colors[btnc],command=lambda: self.cameraPower())
 
         # DEFINE HELP FRAME
         self.HELP_TAB = tk.Frame(self.tabs,bg='snow3',relief=styles[sty],borderwidth=size)
@@ -575,10 +578,13 @@ class ephysTool(tk.Frame):
         self.toolbar.pack(side=tk.BOTTOM,fill=tk.BOTH,expand=1)
 
         # connections frame packing
-        self.connect_label.pack(side=tk.TOP,fill=tk.X,expand=1,padx=xpad,pady=ypad)
-        self.MODE_FRAME.pack(side=tk.TOP,fill=tk.Y)       
-        self.auto_button.pack(side=tk.TOP,fill=tk.Y,expand=1,anchor=tk.E)
-        self.manual_button.pack(side=tk.TOP,fill=tk.Y,expand=1,anchor=tk.E)
+        self.connect_label.pack(side=tk.TOP,fill=tk.X,expand=0,padx=xpad,pady=ypad)
+        self.MODE_FRAME.pack(side=tk.TOP,anchor=tk.W,padx=xpad,pady=ypad)
+        self.auto_all_button.pack(side=tk.TOP,fill=tk.Y,expand=1,anchor=tk.W)
+        self.auto_select_button.pack(side=tk.TOP,fill=tk.Y,expand=1,anchor=tk.W)
+        self.manual_button.pack(side=tk.TOP,fill=tk.Y,expand=1,anchor=tk.W)
+
+        self.camera_power.pack(side=tk.TOP,fill=tk.X,expand=0,padx=xpad,pady=ypad)
 
         # self.help_btn.pack(anchor=tk.SE,expand=0,padx=xpad,pady=ypad)
         
@@ -616,9 +622,12 @@ class ephysTool(tk.Frame):
             return True
         except ValueError:
             return False
+
     def samplerateChange(self,*args):
         print('sample rate changed.')
 
+    def cameraPower(self): 
+        
     def modeChange(self, *args):
         # Set up plot axes
         self.ax = self.fig.add_subplot(111)
@@ -833,15 +842,16 @@ root.mainloop()
     TODO: WITH SUTTER
     - set locations
     - does driver from github work? 
-    - will it work without the actual manip? 
     - get position
     - move to position
     - local coordinate frame necessary?? 
 
-
-
     TODO: OPTICAL EPHYS
-    - 
+    - read tif files with button 
+    - auto all mode: detect cells and populate list
+    - auto select mode: detect cells, select ones to test. 
+    - manual mode: draw cells (click centroid, slide control to change diam.)
+    - label cells in all modes
 
     FINISHED: 
     - looks pretty good. 
