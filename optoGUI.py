@@ -7,7 +7,6 @@
     Version Control: https://github.gatech.edu/mgonzalez91/pythonOpticalEphys 
 
 """
-
 # Import all necessary libraries
 import tkinter as tk 
 from tkinter import ttk
@@ -19,7 +18,7 @@ import numpy as np
 import scipy as sp
 import scipy.signal as sig
 import pyabf
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import axographio as axo
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
@@ -29,6 +28,10 @@ from PIL import ImageTk, Image
 import random #randomize locations for now
 import re # regex 
 import time # for sleeps
+import tifffile as tiff
+import cv2
+
+
 # GUI Formatting params
 # Colors
 sample_num = 0
@@ -87,6 +90,7 @@ sty = 3
 size = 3
 xpad = 5
 ypad = 2
+linewidth = 3 # drawing cell contours
 
 # strings 
 INIT_STATUS_STR = 'Click CLEAN to begin.'
@@ -99,11 +103,14 @@ CONTROLS + STATUS:
 
 WASH
 """
+img_name = "1.tif"
+wid = 550
+hei = 550
 # Define GUI class
 class ephysTool(tk.Frame):
     def __init__(self, master=None):
         tk.Frame.__init__(self,master)
-        master.title("MG Electrophysiology Tool")
+        master.title("All Optical + Cleaning")
         self.master = master
         # self.getCOMports()
 
@@ -136,7 +143,7 @@ class ephysTool(tk.Frame):
         self.status_label = tk.Label(self.status_box, text="Status:",font=(label_str),bg=controls_colors[framec])
 
         self.duration_value = tk.DoubleVar()
-        self.duration_value.set(20) # default capactiance
+        self.duration_value.set(20) # default duration
         self.duration_label = tk.Label(self.controls_box, text="Break In Duration [ms]:",font=(label_str),bg=controls_colors[framec])
         vcmd = self.master.register(self.validate) # we have to wrap the command
         self.duration_entry = tk.Entry(self.controls_box, text=self.duration_value,validate="key", validatecommand=(vcmd, '%P'),bg=controls_colors[entryc])
@@ -371,13 +378,18 @@ class ephysTool(tk.Frame):
 
         # OPTOEPHYS WIDGETS
         # Camera frame widgets
-        wid = 500
-        hei = 500
         self.camera_label = tk.Label(self.CAMERA_FRAME, text="CAMERA VIEWPORT",font=(title_str),bg=camera_colors[framec])
         self.camera_canvas = tk.Canvas(self.CAMERA_FRAME, width=wid,height=hei,bg=camera_colors[framec])
         # pth = "C:/Users/mgonzalez91/Dropbox (GaTech)/Research/All Things Emory !/pythonOpticalEphys repo/repo/pythonOpticalEphys/temp_img.png"
-        self.temp_img = ImageTk.PhotoImage(Image.open("temp_img.png")) # temporary image, use input from camera here. 
-        self.camera_canvas.create_image(wid/2,hei/2,image=self.temp_img)
+        # self.raw_tif = Image.open(img_name)
+        # self.new_tif = self.raw_tif.convert('L') # temporary image, use input from camera here. 
+        # self.resized_tif = self.new_tif.resize((wid,hei), Image.ANTIALIAS)
+        # self.temp_img = ImageTk.PhotoImage(self.resized_tif)
+        # self.viewport = self.camera_canvas.create_image(wid/2,hei/2,image=self.temp_img)
+        
+        self.raw_tif = np.array(Image.open(img_name).convert('L').resize((wid,hei)))
+        self.display_tif = ImageTk.PhotoImage(image=Image.fromarray(self.raw_tif))
+        self.viewport = self.camera_canvas.create_image(wid/2,hei/2,image=self.display_tif)
         
         # Sample rate
         self.samplerate_box = tk.Frame(self.CAMERA_FRAME,bg=camera_colors[framec],relief=styles[0],borderwidth=1)
@@ -413,8 +425,11 @@ class ephysTool(tk.Frame):
         self.manual_button = tk.Radiobutton(self.MODE_FRAME,text="Manual",variable=self.mode,value=2,bg=connect_colors[framec])
 
         # Camera control (temporarily just reading tifs)
-        self.camera_power = tk.Button(self.CONNECT_FRAME,text='Camera',font=(btn_str),bg=connect_colors[btnc],command=lambda: self.cameraPower())
-
+        self.camera_power = tk.Button(self.CONNECT_FRAME,text='Find Cells',font=(btn_str),bg=connect_colors[btnc],command=self.cameraPower)
+        
+        self.filter_threshold = tk.DoubleVar()
+        self.filter_threshold.set(97) #default value
+        self.filter_slide = tk.Scale(self.CONNECT_FRAME,variable=self.filter_threshold,bg=connect_colors[btnc],command=self.cameraPower,orient=tk.HORIZONTAL)
         # DEFINE HELP FRAME
         self.HELP_TAB = tk.Frame(self.tabs,bg='snow3',relief=styles[sty],borderwidth=size)
         self.tabs.add(self.HELP_TAB,text='   | HELP |   ')
@@ -584,7 +599,8 @@ class ephysTool(tk.Frame):
         self.auto_select_button.pack(side=tk.TOP,fill=tk.Y,expand=1,anchor=tk.W)
         self.manual_button.pack(side=tk.TOP,fill=tk.Y,expand=1,anchor=tk.W)
 
-        self.camera_power.pack(side=tk.TOP,fill=tk.X,expand=0,padx=xpad,pady=ypad)
+        self.camera_power.pack(side=tk.LEFT,expand=0,padx=xpad,pady=ypad)
+        self.filter_slide.pack(side=tk.TOP,fill=tk.X,expand=0,padx=xpad,pady=ypad)
 
         # self.help_btn.pack(anchor=tk.SE,expand=0,padx=xpad,pady=ypad)
         
@@ -626,19 +642,49 @@ class ephysTool(tk.Frame):
     def samplerateChange(self,*args):
         print('sample rate changed.')
 
-    def cameraPower(self): 
-        
+    def cameraPower(self,*args): 
+        # Read image (from camera)
+        raw_image = self.raw_tif
+        norm_image = raw_image/np.max(raw_image)
+        contour_image = raw_image/np.max(raw_image)
+        row,col = norm_image.shape
+
+        # filter to preserve edges, threshold above 97 percentile 'fluorescence', use 2.4% of size for filter size
+        bilateral_filtered_image = cv2.bilateralFilter(norm_image.astype('float32'), int(.019*row), int(.019*row), int(.019*row))
+        ret, masked_image = cv2.threshold(bilateral_filtered_image,np.quantile(norm_image,self.filter_threshold.get()/100),1,cv2.THRESH_BINARY)
+
+        # find contours from masked image  
+        contours, hierarchy = cv2.findContours(masked_image.astype('uint8'),cv2.RETR_LIST,cv2.CHAIN_APPROX_NONE)
+
+        # detect if cell or not 
+        centroids = list()
+        for cnt in contours:
+            # measure minimum enclosing circle for each contour detected
+            (x,y),radius = cv2.minEnclosingCircle(cnt)
+
+            # if contour size is between .05% and 1% of field of view, count as cell
+            # also check if min enclosing circle is significantly bigger than contourArea to measure roundness
+            if cv2.contourArea(cnt) < .01*row*col and cv2.contourArea(cnt) > .0005*row*col and cv2.contourArea(cnt) > (radius*radius*3.1415*.5):
+                # print("Cell Detected")
+                cv2.drawContours(contour_image, cnt, -1, (200,200,200), linewidth)
+                M = cv2.moments(cnt)
+                cx = int(M['m10']/M['m00'])
+                cy = int(M['m01']/M['m00'])
+                centroids.append([cx, cy])
+        # plt.imshow(contour_image)
+        # plt.show()
+        self.img = ImageTk.PhotoImage(image=Image.fromarray(contour_image))
+
+        print('Num cells =', len(centroids))
+        self.camera_canvas.itemconfig(self.viewport,image=self.img)
+        # self.camera_canvas.draw()
+
     def modeChange(self, *args):
         # Set up plot axes
         self.ax = self.fig.add_subplot(111)
         self.ax.clear()
         self.ax.set_ylabel('Firing Frequency [Hz]')
         self.ax.set_xlabel('Current Density [pA/pF]')
-
-        # If there is a directory selected, update plot, otherwise do nothing. 
-        if self.directory != NULL_DIR_STR:
-            self.updatePlot()
-        self.canvas.draw()
 
     def goToLocation(self,loc):
         if loc == sample_num:
