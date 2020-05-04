@@ -1,7 +1,7 @@
 """
     Python based GUI for all optical e-phys and auto-cleaning.
 
-    Mercedes Gonzalez. March 2020.
+    Mercedes Gonzalez. May 2020.
     m.gonzalez@gatech.edu
     Precision Biosystems Lab | Georgia Institute of Technology
     Version Control: https://github.gatech.edu/mgonzalez91/pythonOpticalEphys 
@@ -90,7 +90,7 @@ sty = 3
 size = 3
 xpad = 5
 ypad = 2
-linewidth = 3 # drawing cell contours
+linewidth = 2 # drawing cell contours
 
 # strings 
 INIT_STATUS_STR = 'Click CLEAN to begin.'
@@ -621,6 +621,8 @@ class ephysTool(tk.Frame):
         self.ax.set_xlabel('Time [s]')
         box = self.ax.get_position()
         self.ax.set_position([box.x0, box.y0, box.width*.75, box.height])
+
+        # self.pseudoCamera()
 # __________________________________________________________________________________________________________________________
 # __________________________________________________________________________________________________________________________
 #       Define GUI Functions
@@ -642,17 +644,28 @@ class ephysTool(tk.Frame):
     def samplerateChange(self,*args):
         print('sample rate changed.')
 
+    # def pseudoCamera(self):
+    #     image_path = "C:/Users/mgonzalez91/Dropbox (GaTech)/Research/All Things Emory !/pythonOpticalEphys repo/repo/pythonOpticalEphys/"
+    #     file_list = [f for f in listdir(image_path) if isfile(join(image_path, f)) & f.endswith(".tif")]
+    #     for tif in file_list:
+    #         self.raw_tif = np.array(Image.open(join(image_path,tif)).convert('L').resize((wid,hei)))
+    #         self.display_tif = ImageTk.PhotoImage(image=Image.fromarray(self.raw_tif))
+    #         self.camera_canvas.itemconfig(self.viewport,image=self.display_tif)
+    #         time.sleep(.5)
+
+                
     def cameraPower(self,*args): 
-        # Read image (from camera)
+        color_num = 200
+        row,col = self.raw_tif.shape
         raw_image = self.raw_tif
+        # Read image (from camera)
         norm_image = raw_image/np.max(raw_image)
-        contour_image = raw_image/np.max(raw_image)
-        row,col = norm_image.shape
+        contour_image = raw_image
 
         # filter to preserve edges, threshold above 97 percentile 'fluorescence', use 2.4% of size for filter size
         bilateral_filtered_image = cv2.bilateralFilter(norm_image.astype('float32'), int(.019*row), int(.019*row), int(.019*row))
         ret, masked_image = cv2.threshold(bilateral_filtered_image,np.quantile(norm_image,self.filter_threshold.get()/100),1,cv2.THRESH_BINARY)
-
+        
         # find contours from masked image  
         contours, hierarchy = cv2.findContours(masked_image.astype('uint8'),cv2.RETR_LIST,cv2.CHAIN_APPROX_NONE)
 
@@ -666,13 +679,12 @@ class ephysTool(tk.Frame):
             # also check if min enclosing circle is significantly bigger than contourArea to measure roundness
             if cv2.contourArea(cnt) < .01*row*col and cv2.contourArea(cnt) > .0005*row*col and cv2.contourArea(cnt) > (radius*radius*3.1415*.5):
                 # print("Cell Detected")
-                cv2.drawContours(contour_image, cnt, -1, (200,200,200), linewidth)
+                cv2.drawContours(contour_image, cnt, -1, (color_num,color_num,color_num), linewidth)
                 M = cv2.moments(cnt)
                 cx = int(M['m10']/M['m00'])
                 cy = int(M['m01']/M['m00'])
                 centroids.append([cx, cy])
-        # plt.imshow(contour_image)
-        # plt.show()
+
         self.img = ImageTk.PhotoImage(image=Image.fromarray(contour_image))
 
         print('Num cells =', len(centroids))
