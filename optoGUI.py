@@ -383,7 +383,10 @@ class ephysTool(tk.Frame):
         self.camera_label = tk.Label(self.CAMERA_FRAME, text="CAMERA VIEWPORT",font=(title_str),bg=camera_colors[framec])
         self.camera_canvas = tk.Canvas(self.CAMERA_FRAME, width=wid,height=hei,bg=camera_colors[framec])
 
-        self.raw_tif = np.array(Image.open(img_name).convert('L').resize((wid,hei)))
+        self.my_images = list(["1.tif","2.tif","3.tif","4.tif","5.tif","6.tif"])
+        self.my_image_number = 0
+
+        self.raw_tif = np.array(Image.open(self.my_images[self.my_image_number]).convert('L').resize((wid,hei)))
         self.display_tif = ImageTk.PhotoImage(image=Image.fromarray(self.raw_tif))
         self.viewport = self.camera_canvas.create_image(wid/2,hei/2,image=self.display_tif)
         
@@ -408,7 +411,7 @@ class ephysTool(tk.Frame):
 
         # connect frame widgets
         self.connect_label = tk.Label(self.CONNECT_FRAME, text="CONNECTIONS",font=(title_str),bg=connect_colors[framec])
-                
+        
         # Mode selection
         self.mode_str = tk.StringVar()
         self.mode_str.set('Auto [all]') # set default value
@@ -419,24 +422,25 @@ class ephysTool(tk.Frame):
 
         # Camera control (temporarily just reading tifs)
         self.camera_power = tk.Button(self.CONNECT_FRAME,text='Find Cells',font=(btn_str),bg=connect_colors[btnc],command=self.cameraPower)
+        self.next = tk.Button(self.CONNECT_FRAME,text='>',font=(btn_str),bg=connect_colors[btnc],command=self.refreshCamera)
         
         self.threshold_box = tk.Frame(self.CONNECT_FRAME,bg=connect_colors[framec],relief=styles[sty],borderwidth = size)
         self.threshold_label = tk.Label(self.threshold_box, text="Threshold Percentile",font=(label_str),bg=connect_colors[framec])
-        self.threshold_str = tk.StringVar()
-        self.threshold_str.set(97)
-        self.threshold_perc = tk.Spinbox(self.threshold_box,from_=0,to=100,increment=2,textvariable=self.threshold_str,bg=connect_colors[btnc],command=self.cameraPower)
+        self.threshold_var = tk.DoubleVar()
+        self.threshold_var.set(97.0)
+        self.threshold_perc = tk.Spinbox(self.threshold_box,from_=0,to=100,increment=.5,textvariable=self.threshold_var,bg=connect_colors[btnc],command=self.cameraPower)
         
         self.scolor_box = tk.Frame(self.CONNECT_FRAME,bg=connect_colors[framec],relief=styles[sty],borderwidth = size)
         self.scolor_label = tk.Label(self.scolor_box, text="Color Blending",font=(label_str),bg=connect_colors[framec])
-        self.scolor = tk.StringVar()
-        self.scolor.set(1.9)
-        self.sigma_color = tk.Spinbox(self.scolor_box,from_=0,to=10,increment=.1,textvariable=self.threshold_str,bg=connect_colors[btnc],command=self.cameraPower)
+        self.scolor_var = tk.DoubleVar()
+        self.scolor_var.set(.034)
+        self.sigma_color = tk.Spinbox(self.scolor_box,from_=0,to=10,increment=.005,textvariable=self.scolor_var,bg=connect_colors[btnc],command=self.cameraPower)
         
         self.sspace_box = tk.Frame(self.CONNECT_FRAME,bg=connect_colors[framec],relief=styles[sty],borderwidth = size)
         self.sspace_label = tk.Label(self.sspace_box, text="Spatial Blending",font=(label_str),bg=connect_colors[framec])
-        self.sspace = tk.StringVar()
-        self.sspace.set(1.9)
-        self.sigma_space = tk.Spinbox(self.sspace_box,from_=0,to=10,increment=.1,textvariable=self.threshold_str,bg=connect_colors[btnc],command=self.cameraPower)
+        self.sspace_var = tk.DoubleVar()
+        self.sspace_var.set(.019)
+        self.sigma_space = tk.Spinbox(self.sspace_box,from_=0,to=10,increment=.005,textvariable=self.sspace_var,bg=connect_colors[btnc],command=self.cameraPower)
         
         # DEFINE HELP FRAME
         self.HELP_TAB = tk.Frame(self.tabs,bg='snow3',relief=styles[sty],borderwidth=size)
@@ -604,24 +608,24 @@ class ephysTool(tk.Frame):
         # connections frame packing
         self.connect_label.pack(side=tk.TOP,fill=tk.X,expand=0,padx=xpad,pady=ypad)
 
-        self.mode_box.pack(side=tk.TOP,anchor=tk.E,expand=0,padx=xpad,pady=ypad)
+        self.mode_box.pack(side=tk.TOP,anchor=tk.W,expand=0,padx=xpad,pady=ypad)
         self.mode_label.pack(side=tk.LEFT,anchor=tk.E,expand=0,padx=xpad,pady=ypad)
         self.mode_combo.pack(side=tk.LEFT,anchor=tk.E,expand=0,padx=xpad,pady=ypad)
 
-        self.threshold_box.pack(side=tk.TOP,anchor=tk.E,expand=0,padx=xpad,pady=ypad)
+        self.threshold_box.pack(side=tk.TOP,anchor=tk.W,expand=0,padx=xpad,pady=ypad)
         self.threshold_label.pack(side=tk.LEFT,anchor=tk.E,expand=0,padx=xpad,pady=ypad)
         self.threshold_perc.pack(side=tk.LEFT,anchor=tk.E,expand=0,padx=xpad,pady=ypad)
         
-        self.scolor_box.pack(side=tk.TOP,anchor=tk.E,expand=0,padx=xpad,pady=ypad)
+        self.scolor_box.pack(side=tk.TOP,anchor=tk.W,expand=0,padx=xpad,pady=ypad)
         self.scolor_label.pack(side=tk.LEFT,anchor=tk.E,expand=0,padx=xpad,pady=ypad)
         self.sigma_color.pack(side=tk.LEFT,anchor=tk.E,expand=0,padx=xpad,pady=ypad)
 
-        self.sspace_box.pack(side=tk.TOP,anchor=tk.E,expand=0,padx=xpad,pady=ypad)
+        self.sspace_box.pack(side=tk.TOP,anchor=tk.W,expand=0,padx=xpad,pady=ypad)
         self.sspace_label.pack(side=tk.LEFT,anchor=tk.E,expand=0,padx=xpad,pady=ypad)
         self.sigma_space.pack(side=tk.LEFT,anchor=tk.E,expand=0,padx=xpad,pady=ypad)
 
-        self.camera_power.pack(side=tk.TOP,anchor=tk.E,expand=0,padx=xpad,pady=ypad)
-
+        self.camera_power.pack(side=tk.LEFT,anchor=tk.E,expand=0,padx=xpad,pady=ypad)
+        self.next.pack(side=tk.LEFT,anchor=tk.E,expand=0,padx=xpad,pady=ypad)
 
         # self.help_btn.pack(anchor=tk.SE,expand=0,padx=xpad,pady=ypad)
         
@@ -674,10 +678,21 @@ class ephysTool(tk.Frame):
     #         self.camera_canvas.itemconfig(self.viewport,image=self.display_tif)
     #         time.sleep(.5)
 
-                
+    def refreshCamera(self,):
+        self.my_image_number += 1
+
+        if self.my_image_number == len(self.my_images):
+            self.my_image_number = 0
+
+        self.raw_tif = np.array(Image.open(self.my_images[self.my_image_number]).convert('L').resize((wid,hei)))
+        self.img = ImageTk.PhotoImage(image=Image.fromarray(self.raw_tif))
+        self.camera_canvas.itemconfig(self.viewport,image=self.img)
+
+        # self.cameraPower()
+
     def cameraPower(self,*args): 
         color_num = 200
-        self.raw_tif = np.array(Image.open(img_name).convert('L').resize((wid,hei)))
+        self.raw_tif = np.array(Image.open(self.my_images[self.my_image_number]).convert('L').resize((wid,hei))) 
         
         row,col = self.raw_tif.shape
         raw_image = self.raw_tif
@@ -685,10 +700,10 @@ class ephysTool(tk.Frame):
         # Read image (from camera)
         norm_image = raw_image/np.max(raw_image)
         contour_image = raw_image
-
+        print(float(self.threshold_perc.get())/100)
         # filter to preserve edges, threshold above 97 percentile 'fluorescence', use 2.4% of size for filter size
-        bilateral_filtered_image = cv2.bilateralFilter(norm_image.astype('float32'), int(.019*row), int(.019*row), int(.019*row))
-        ret, masked_image = cv2.threshold(bilateral_filtered_image,np.quantile(norm_image,int(self.threshold_perc.get())/100),1,cv2.THRESH_BINARY)
+        bilateral_filtered_image = cv2.bilateralFilter(norm_image.astype('float32'), int(float(self.scolor_var.get())*row), int(float(self.sspace_var.get())*row), int(.019*row))
+        ret, masked_image = cv2.threshold(bilateral_filtered_image,np.quantile(norm_image,float(self.threshold_perc.get())/100),1,cv2.THRESH_BINARY)
         
         # find contours from masked image  
         contours, hierarchy = cv2.findContours(masked_image.astype('uint8'),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
