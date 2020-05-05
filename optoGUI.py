@@ -678,7 +678,7 @@ class ephysTool(tk.Frame):
     #         self.camera_canvas.itemconfig(self.viewport,image=self.display_tif)
     #         time.sleep(.5)
 
-    def refreshCamera(self,):
+    def refreshCamera(self):
         self.my_image_number += 1
 
         if self.my_image_number == len(self.my_images):
@@ -700,7 +700,7 @@ class ephysTool(tk.Frame):
         # Read image (from camera)
         norm_image = raw_image/np.max(raw_image)
         contour_image = raw_image
-        print(float(self.threshold_perc.get())/100)
+
         # filter to preserve edges, threshold above 97 percentile 'fluorescence', use 2.4% of size for filter size
         bilateral_filtered_image = cv2.bilateralFilter(norm_image.astype('float32'), int(float(self.scolor_var.get())*row), int(float(self.sspace_var.get())*row), int(.019*row))
         ret, masked_image = cv2.threshold(bilateral_filtered_image,np.quantile(norm_image,float(self.threshold_perc.get())/100),1,cv2.THRESH_BINARY)
@@ -717,7 +717,6 @@ class ephysTool(tk.Frame):
             # if contour size is between .05% and 1% of field of view, count as cell
             # also check if min enclosing circle is significantly bigger than contourArea to measure roundness
             if cv2.contourArea(cnt) < .01*row*col and cv2.contourArea(cnt) > .0005*row*col and cv2.contourArea(cnt) > (radius*radius*3.1415*.5):
-                # print("Cell Detected")
                 cv2.drawContours(contour_image, cnt, -1, (color_num,color_num,color_num), linewidth)
                 M = cv2.moments(cnt)
                 cx = int(M['m10']/M['m00'])
@@ -726,7 +725,6 @@ class ephysTool(tk.Frame):
 
         self.img = ImageTk.PhotoImage(image=Image.fromarray(contour_image))
 
-        print('Num cells =', len(centroids))
         # self.camera_canvas.delete(self.viewport)
         self.camera_canvas.itemconfig(self.viewport,image=self.img)
 
