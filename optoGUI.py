@@ -718,10 +718,12 @@ class ephysTool(tk.Frame):
             # also check if min enclosing circle is significantly bigger than contourArea to measure roundness
             if cv2.contourArea(cnt) < .01*row*col and cv2.contourArea(cnt) > .0005*row*col and cv2.contourArea(cnt) > (radius*radius*3.1415*.5):
                 cv2.drawContours(contour_image, cnt, -1, (color_num,color_num,color_num), linewidth)
+
                 M = cv2.moments(cnt)
                 cx = int(M['m10']/M['m00'])
                 cy = int(M['m01']/M['m00'])
                 centroids.append([cx, cy])
+                cv2.drawMarker(contour_image,(cx,cy),(color_num, color_num, color_num), cv2.MARKER_CROSS,10,1)
 
         self.img = ImageTk.PhotoImage(image=Image.fromarray(contour_image))
 
