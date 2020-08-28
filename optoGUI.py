@@ -28,9 +28,9 @@ from PIL import ImageTk, Image
 import random #randomize locations for now
 import re # regex 
 import time # for sleeps
-import tifffile as tiff
 import cv2
-
+from serial.tools import list_ports
+from sutter import Sutter_driver
 
 # GUI Formatting params
 # Colors
@@ -104,9 +104,11 @@ CONTROLS + STATUS:
 WASH
 """
 img_name = "1.tif"
+ROOT_PATH = "C:/Users/mgonzalez91/Dropbox (GaTech)/Research/EmoryResearch/pythonOpticalEphys repo/repo/pythonOpticalEphys/"
 wid = 550
 hei = 550
 
+CF = 0.0625 # conversion factor microsteps-->microns
 
 # Define GUI class
 class ephysTool(tk.Frame):
@@ -243,7 +245,7 @@ class ephysTool(tk.Frame):
 
         # -------------
         # Wash bath location
-        self.washbath_location_box = tk.Frame(self.LOCATIONS_FRAME,bg=locations_colors[framec],relief=styles[1],borderwidth=1)
+        self.washbath_location_box = tk.Frame(self.LOCATIONS_FRAME,bg=locations_colors[framec],relief=styles[0],borderwidth=1)
         self.washbath_location_btn = tk.Button(self.washbath_location_box, text="Wash Bath Location:",font=(btn_str),bg=locations_colors[boxc],command=lambda: self.setLocation(washbath_num))
         
         # Wash bath location x
@@ -352,10 +354,14 @@ class ephysTool(tk.Frame):
         self.scientifica_btn = tk.Radiobutton(self.actuator_box,text="Scientifica",variable=self.actuator_value,value=1,bg=settings_colors[framec])
         
         # Manipulator COM
+        # self.COM_PORT = ''
         self.COM_box = tk.Frame(self.SETTINGS_FRAME,bg=settings_colors[framec],relief=styles[sty],borderwidth=size)
-        self.COMS_list = ['TEST1','TEST2','GET COMS WORKING']
+        self.COMS_list = list(list_ports.comports())
         self.manip_COM_combo = ttk.Combobox(self.COM_box,values=self.COMS_list)
         self.COM_label = tk.Label(self.COM_box, text="Manipulator COM: ",font=(label_str),bg=settings_colors[framec])
+        if len(self.COMS_list) == 1:
+            self.manip_COM_combo.current(0)
+            self.sutter = Sutter_driver(port='COM3',baudrate=128000,bytesize=8,stopbits=1)
 
         # Multiclamp handle
         self.multiclamp_box = tk.Frame(self.SETTINGS_FRAME,bg=settings_colors[framec],relief=styles[sty],borderwidth=size)
@@ -386,7 +392,7 @@ class ephysTool(tk.Frame):
         self.my_images = list(["1.tif","2.tif","3.tif","4.tif","5.tif","6.tif"])
         self.my_image_number = 0
 
-        self.raw_tif = np.array(Image.open(self.my_images[self.my_image_number]).convert('L').resize((wid,hei)))
+        self.raw_tif = np.array(Image.open(join(ROOT_PATH,self.my_images[self.my_image_number])).convert('L').resize((wid,hei)))
         self.display_tif = ImageTk.PhotoImage(image=Image.fromarray(self.raw_tif))
         self.viewport = self.camera_canvas.create_image(wid/2,hei/2,image=self.display_tif)
         
@@ -641,21 +647,18 @@ class ephysTool(tk.Frame):
         # Configure Plot Initially
         self.ax = self.fig.add_subplot(111)
         self.ax.clear()
-        # self.ax.set_facecolor('xkcd:AntiqueWhite2')
         self.ax.set_ylabel('Voltage [mV]')
         self.ax.set_xlabel('Time [s]')
         box = self.ax.get_position()
         self.ax.set_position([box.x0, box.y0, box.width*.75, box.height])
 
-        # self.pseudoCamera()
+        # Configure COM port communication with sutter
+        
+
 # __________________________________________________________________________________________________________________________
 # __________________________________________________________________________________________________________________________
 #       Define GUI Functions
 
-    # def getCOMports(self):
-    #     self.COMS_list = list(serialport.comports())
-    #     self.COMS_list = list(['lol','nothing works'])
-    #     return
     def validate(self, new_text):
         if not new_text: # the field is being cleared
             self.entered_number = 0
@@ -684,7 +687,7 @@ class ephysTool(tk.Frame):
         if self.my_image_number == len(self.my_images):
             self.my_image_number = 0
 
-        self.raw_tif = np.array(Image.open(self.my_images[self.my_image_number]).convert('L').resize((wid,hei)))
+        self.raw_tif = np.array(Image.open(join(ROOT_PATH,self.my_images[self.my_image_number])).convert('L').resize((wid,hei)))
         self.img = ImageTk.PhotoImage(image=Image.fromarray(self.raw_tif))
         self.camera_canvas.itemconfig(self.viewport,image=self.img)
 
@@ -692,7 +695,7 @@ class ephysTool(tk.Frame):
 
     def cameraPower(self,*args): 
         color_num = 200
-        self.raw_tif = np.array(Image.open(self.my_images[self.my_image_number]).convert('L').resize((wid,hei))) 
+        self.raw_tif = np.array(Image.open(join(ROOT_PATH,self.my_images[self.my_image_number])).convert('L').resize((wid,hei)))
         
         row,col = self.raw_tif.shape
         raw_image = self.raw_tif
@@ -722,6 +725,7 @@ class ephysTool(tk.Frame):
                 M = cv2.moments(cnt)
                 cx = int(M['m10']/M['m00'])
                 cy = int(M['m01']/M['m00'])
+                
                 centroids.append([cx, cy])
                 cv2.drawMarker(contour_image,(cx,cy),(color_num, color_num, color_num), cv2.MARKER_CROSS,10,1)
 
@@ -740,6 +744,7 @@ class ephysTool(tk.Frame):
     def goToLocation(self,loc):
         if loc == sample_num:
             self.status.set('Moving to sample')
+            # moveStr = 
         elif loc == abovebath_num:
             self.status.set('Moving to sample')
         elif loc == cleanbath_num:
@@ -751,23 +756,37 @@ class ephysTool(tk.Frame):
         elif loc == abovewash_num:
             self.status.set('Moving to above wash bath')
             
+        self.sutter.Move2Pos(moveStr)
     def setLocation(self,loc):
-        # get location from controller here instead of randomizing
-        xloc = random.randint(1,100)
-        yloc = random.randint(1,100)
-        zloc = random.randint(1,100)
+        # get location from controller and convert to array of bytes
+        cmdStr = self.sutter.CurrentPos() # full command string sent to controller
+        cmdByteStr = bytearray(cmdStr) # split into bytes for easy indexing
+        driveNum = cmdByteStr[0]
+        xByte = cmdByteStr[1:4]
+        yByte = cmdByteStr[5:8]
+        zByte = cmdByteStr[9:12]
+
+        # convert to int: must be unsigned, little endian format... units are microsteps
+        x_umstep = int.from_bytes(xByte,byteorder='little',signed=False) 
+        y_umstep = int.from_bytes(yByte,byteorder='little',signed=False) 
+        z_umstep = int.from_bytes(zByte,byteorder='little',signed=False) 
+
+        x_micron = int(x_umstep*CF)
+        y_micron = int(y_umstep*CF)
+        z_micron = int(z_umstep*CF)
+
         if loc == abovebath_num:
-            self.abovebath_x_value.set(xloc)
-            self.abovebath_y_value.set(yloc)
-            self.abovebath_z_value.set(zloc)
+            self.abovebath_x_value.set(x_micron)
+            self.abovebath_y_value.set(y_micron)
+            self.abovebath_z_value.set(z_micron)
         elif loc == washbath_num:
-            self.washbath_x_value.set(xloc)
-            self.washbath_y_value.set(yloc)
-            self.washbath_z_value.set(zloc)
+            self.washbath_x_value.set(x_micron)
+            self.washbath_y_value.set(y_micron)
+            self.washbath_z_value.set(z_micron)
         elif loc == cleanbath_num:
-            self.cleanbath_x_value.set(xloc)
-            self.cleanbath_y_value.set(yloc)
-            self.cleanbath_z_value.set(zloc)
+            self.cleanbath_x_value.set(x_micron)
+            self.cleanbath_y_value.set(y_micron)
+            self.cleanbath_z_value.set(z_micron)
         
     def saveLocations(self):
         above = np.array((self.abovebath_x_value.get(),self.abovebath_y_value.get(),self.abovebath_z_value.get()),dtype='int32')
@@ -931,17 +950,12 @@ root.mainloop()
 '''
     TODO: WITHOUT SUTTER
     - calculate retracting movements
-    - load available COM ports and import to control list
     - determine multiclamp handle
     - save default settings
     - load default settings
 
     TODO: WITH SUTTER
-    - set locations
-    - does driver from github work? 
-    - get position
     - move to position
-    - local coordinate frame necessary?? 
 
     TODO: OPTICAL EPHYS
     - read tif files with button 
@@ -951,6 +965,10 @@ root.mainloop()
     - label cells in all modes
 
     FINISHED: 
+    - get position
+    - does driver from github work? yes! wooo
+    - load available COM ports and import to control list
+    - set locations
     - looks pretty good. 
     - load locations (from csv)
     - save locations (to csv)
