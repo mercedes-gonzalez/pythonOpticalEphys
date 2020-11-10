@@ -12,6 +12,7 @@ Code Organization: (optoGUI.py)
 2. Define general formatting (font sizes, colors, etc)
 
 ephysTool CLASS: 
+
 3. Define Notebook (holds the tabs)
 4. Define cleaning tab frames
 5. Define cleaning tab widgets (widgets exist inside frames)
