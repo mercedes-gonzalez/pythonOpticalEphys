@@ -11,7 +11,7 @@ Code Organization: (optoGUI.py)
 1. Import libraries
 2. Define general formatting (font sizes, colors, etc)
 
-ephysTool CLASS: -------------------------
+ephysTool CLASS: 
 3. Define Notebook (holds the tabs)
 4. Define cleaning tab frames
 5. Define cleaning tab widgets (widgets exist inside frames)
@@ -22,7 +22,7 @@ ephysTool CLASS: -------------------------
 10. Pack optical ephys tab things
 11. Pack help tab
 12. Initialize plot
-------------------------------------------
+
 
 13. Define GUI functions - I added a little description to each one
 14. Main function to build the tkinter window/ main loop
