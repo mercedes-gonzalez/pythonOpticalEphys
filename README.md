@@ -2,8 +2,11 @@
 Python based GUI for auto-cleaning and all optical electrophysiology.
 
 General Format: 3 tabs
+
 (1) Autocleaning: allows user to do an autocleaning protocol. 
+
 (2) All Optical Electrophysiology: This will become the yolo tab. Right now it's set up to read images instead of the camera because I haven't gotten around to setting it up with the QImaging camera on the rig. 
+
 (3) Help: Just wanted to have an instructions manual basically. 
 
 Code Organization: (optoGUI.py)
