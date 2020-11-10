@@ -11,7 +11,7 @@
 import tkinter as tk 
 from tkinter import ttk
 from tkinter import filedialog
-from os import listdir
+from os import listdir, getcwd
 from os.path import isfile, join
 import csv
 import numpy as np
@@ -83,14 +83,14 @@ title_str = 'Arial 11 bold'
 label_str = 'Arial 9'
 btn_str = 'Arial 9 bold'
 
-# other general formatting
+# other general formatting for boxes in gui
 styles = ['flat','raised','sunken','groove','ridge']
 boxwidth = 14
 sty = 3
 size = 3
 xpad = 5
 ypad = 2
-linewidth = 2 # drawing cell contours
+linewidth = 2 # drawing cell contours line width
 
 # strings 
 INIT_STATUS_STR = 'Click CLEAN to begin.'
@@ -103,8 +103,8 @@ CONTROLS + STATUS:
 
 WASH
 """
-img_name = "1.tif"
-ROOT_PATH = "C:/Users/mgonzalez91/Dropbox (GaTech)/Research/EmoryResearch/pythonOpticalEphys repo/repo/pythonOpticalEphys/"
+img_name = "temp_img.png"
+ROOT_PATH = getcwd()
 wid = 550
 hei = 550
 
@@ -166,7 +166,7 @@ class ephysTool(tk.Frame):
         self.wash_pres_box = tk.Frame(self.WASH_FRAME,bg=wash_colors[boxc],relief=styles[1],borderwidth=1)
         self.wash_pres_label = tk.Label(self.wash_pres_box,bg=wash_colors[boxc],text="Pressure [mBar]")
         self.wash_pres_display = tk.Text(self.wash_pres_box,bg=wash_colors[entryc],width=boxwidth)
-        self.wash_pres_display.insert(tk.INSERT,'3\n10')
+        self.wash_pres_display.insert(tk.INSERT,'-345\n700')
 
         self.prewash = tk.IntVar()
         self.prewash.set(0)
@@ -183,12 +183,12 @@ class ephysTool(tk.Frame):
         self.clean_time_box = tk.Frame(self.CLEAN_FRAME,bg=clean_colors[boxc],relief=styles[1],borderwidth=1)
         self.clean_time_label = tk.Label(self.clean_time_box,bg=clean_colors[boxc],text="Time [s]")
         self.clean_time_display = tk.Text(self.clean_time_box,bg=clean_colors[entryc],width=boxwidth)
-        self.clean_time_display.insert(tk.INSERT,'3\n10')
+        self.clean_time_display.insert(tk.INSERT,'5\n1\n1\n1\n1\n1\n1\n1\n1\n1\n1\n5')
         
         self.clean_pres_box = tk.Frame(self.CLEAN_FRAME,bg=clean_colors[boxc],relief=styles[1],borderwidth=1)
         self.clean_pres_label = tk.Label(self.clean_pres_box,bg=clean_colors[boxc],text="Pressure [mBar]")
         self.clean_pres_display = tk.Text(self.clean_pres_box,bg=clean_colors[entryc],width=boxwidth)
-        self.clean_pres_display.insert(tk.INSERT,'3\n10')
+        self.clean_pres_display.insert(tk.INSERT,'-345\n-345\n700\n-345\n700\n-345\n700\n-345\n700\n-345\n700\n700\n')
 
         self.save_clean_btn = tk.Button(self.clean_controls_box,text='SAVE PROTOCOL',font=(btn_str),bg=clean_colors[btnc],command=lambda: self.saveProtocol('clean'))
         self.load_clean_btn = tk.Button(self.clean_controls_box,text='LOAD PROTOCOL',font=(btn_str),bg=clean_colors[btnc],command=lambda: self.loadProtocol('clean'))
@@ -389,10 +389,10 @@ class ephysTool(tk.Frame):
         self.camera_label = tk.Label(self.CAMERA_FRAME, text="CAMERA VIEWPORT",font=(title_str),bg=camera_colors[framec])
         self.camera_canvas = tk.Canvas(self.CAMERA_FRAME, width=wid,height=hei,bg=camera_colors[framec])
 
-        self.my_images = list(["1.tif","2.tif","3.tif","4.tif","5.tif","6.tif"])
+        self.my_images = list(["1.png","2.png","3.png","3.png"])
         self.my_image_number = 0
 
-        self.raw_tif = np.array(Image.open(join(ROOT_PATH,self.my_images[self.my_image_number])).convert('L').resize((wid,hei)))
+        self.raw_tif = np.array(Image.open(join(ROOT_PATH,'images',self.my_images[self.my_image_number])).convert('L').resize((wid,hei)))
         self.display_tif = ImageTk.PhotoImage(image=Image.fromarray(self.raw_tif))
         self.viewport = self.camera_canvas.create_image(wid/2,hei/2,image=self.display_tif)
         
@@ -427,26 +427,26 @@ class ephysTool(tk.Frame):
         self.mode_label = tk.Label(self.mode_box, text="Mode: ",font=(label_str),bg=connect_colors[framec])
 
         # Camera control (temporarily just reading tifs)
-        self.camera_power = tk.Button(self.CONNECT_FRAME,text='Find Cells',font=(btn_str),bg=connect_colors[btnc],command=self.cameraPower)
+        self.find_fluor_cells = tk.Button(self.CONNECT_FRAME,text='Find Cells',font=(btn_str),bg=connect_colors[btnc],command=self.idFluorescentCells)
         self.next = tk.Button(self.CONNECT_FRAME,text='>',font=(btn_str),bg=connect_colors[btnc],command=self.refreshCamera)
         
         self.threshold_box = tk.Frame(self.CONNECT_FRAME,bg=connect_colors[framec],relief=styles[sty],borderwidth = size)
         self.threshold_label = tk.Label(self.threshold_box, text="Threshold Percentile",font=(label_str),bg=connect_colors[framec])
         self.threshold_var = tk.DoubleVar()
         self.threshold_var.set(97.0)
-        self.threshold_perc = tk.Spinbox(self.threshold_box,from_=0,to=100,increment=.5,textvariable=self.threshold_var,bg=connect_colors[btnc],command=self.cameraPower)
+        self.threshold_perc = tk.Spinbox(self.threshold_box,from_=0,to=100,increment=.5,textvariable=self.threshold_var,bg=connect_colors[btnc],command=self.idFluorescentCells)
         
         self.scolor_box = tk.Frame(self.CONNECT_FRAME,bg=connect_colors[framec],relief=styles[sty],borderwidth = size)
         self.scolor_label = tk.Label(self.scolor_box, text="Color Blending",font=(label_str),bg=connect_colors[framec])
         self.scolor_var = tk.DoubleVar()
         self.scolor_var.set(.034)
-        self.sigma_color = tk.Spinbox(self.scolor_box,from_=0,to=10,increment=.005,textvariable=self.scolor_var,bg=connect_colors[btnc],command=self.cameraPower)
+        self.sigma_color = tk.Spinbox(self.scolor_box,from_=0,to=10,increment=.005,textvariable=self.scolor_var,bg=connect_colors[btnc],command=self.idFluorescentCells)
         
         self.sspace_box = tk.Frame(self.CONNECT_FRAME,bg=connect_colors[framec],relief=styles[sty],borderwidth = size)
         self.sspace_label = tk.Label(self.sspace_box, text="Spatial Blending",font=(label_str),bg=connect_colors[framec])
         self.sspace_var = tk.DoubleVar()
         self.sspace_var.set(.019)
-        self.sigma_space = tk.Spinbox(self.sspace_box,from_=0,to=10,increment=.005,textvariable=self.sspace_var,bg=connect_colors[btnc],command=self.cameraPower)
+        self.sigma_space = tk.Spinbox(self.sspace_box,from_=0,to=10,increment=.005,textvariable=self.sspace_var,bg=connect_colors[btnc],command=self.idFluorescentCells)
         
         # DEFINE HELP FRAME
         self.HELP_TAB = tk.Frame(self.tabs,bg='snow3',relief=styles[sty],borderwidth=size)
@@ -477,22 +477,6 @@ class ephysTool(tk.Frame):
         self.status_label.pack(side=tk.LEFT,fill=tk.Y,expand=0,padx=xpad,pady=ypad)
         self.status_display.pack(side=tk.LEFT,fill=tk.BOTH,expand=1,padx=xpad,pady=ypad)
 
-        # WASH FRAME PACKING
-        self.WASH_FRAME.pack(side=tk.LEFT,fill=tk.Y,expand=0)
-        self.wash_title.pack(side=tk.TOP,fill=tk.X,expand=0)
-
-        self.wash_controls_box.pack(side=tk.BOTTOM,fill=tk.BOTH,expand=0)
-        self.prewash_btn.pack(side=tk.TOP,fill=tk.BOTH,expand=0)
-        self.save_wash_btn.pack(side=tk.RIGHT,fill=tk.BOTH,expand=1,padx=xpad,pady=ypad)
-        self.load_wash_btn.pack(side=tk.LEFT,fill=tk.BOTH,expand=1,padx=xpad,pady=ypad)
-
-        self.wash_time_box.pack(side=tk.LEFT,fill=tk.Y,expand=1)
-        self.wash_time_label.pack(side=tk.TOP,fill=tk.X,expand=0)
-        self.wash_time_display.pack(side=tk.TOP,fill=tk.Y,expand=0)
-        
-        self.wash_pres_box.pack(side=tk.RIGHT,fill=tk.Y,expand=1)
-        self.wash_pres_label.pack(side=tk.TOP,fill=tk.X,expand=0)
-        self.wash_pres_display.pack(side=tk.TOP,fill=tk.Y,expand=0)
 
 
         # CLEAN FRAME PACKING
@@ -511,6 +495,22 @@ class ephysTool(tk.Frame):
         self.clean_pres_label.pack(side=tk.TOP,fill=tk.X,expand=0)
         self.clean_pres_display.pack(side=tk.TOP,fill=tk.Y,expand=0)
 
+        # WASH FRAME PACKING
+        self.WASH_FRAME.pack(side=tk.LEFT,fill=tk.Y,expand=0)
+        self.wash_title.pack(side=tk.TOP,fill=tk.X,expand=0)
+
+        self.wash_controls_box.pack(side=tk.BOTTOM,fill=tk.BOTH,expand=0)
+        self.prewash_btn.pack(side=tk.TOP,fill=tk.BOTH,expand=0)
+        self.save_wash_btn.pack(side=tk.RIGHT,fill=tk.BOTH,expand=1,padx=xpad,pady=ypad)
+        self.load_wash_btn.pack(side=tk.LEFT,fill=tk.BOTH,expand=1,padx=xpad,pady=ypad)
+
+        self.wash_time_box.pack(side=tk.LEFT,fill=tk.Y,expand=1)
+        self.wash_time_label.pack(side=tk.TOP,fill=tk.X,expand=0)
+        self.wash_time_display.pack(side=tk.TOP,fill=tk.Y,expand=0)
+        
+        self.wash_pres_box.pack(side=tk.RIGHT,fill=tk.Y,expand=1)
+        self.wash_pres_label.pack(side=tk.TOP,fill=tk.X,expand=0)
+        self.wash_pres_display.pack(side=tk.TOP,fill=tk.Y,expand=0)
 
         # LOCATIONS FRAME PACKING
         self.LOCATIONS_FRAME.pack(side=tk.TOP,fill=tk.BOTH,expand=0)
@@ -630,7 +630,7 @@ class ephysTool(tk.Frame):
         self.sspace_label.pack(side=tk.LEFT,anchor=tk.E,expand=0,padx=xpad,pady=ypad)
         self.sigma_space.pack(side=tk.LEFT,anchor=tk.E,expand=0,padx=xpad,pady=ypad)
 
-        self.camera_power.pack(side=tk.LEFT,anchor=tk.E,expand=0,padx=xpad,pady=ypad)
+        self.find_fluor_cells.pack(side=tk.LEFT,anchor=tk.E,expand=0,padx=xpad,pady=ypad)
         self.next.pack(side=tk.LEFT,anchor=tk.E,expand=0,padx=xpad,pady=ypad)
 
         # self.help_btn.pack(anchor=tk.SE,expand=0,padx=xpad,pady=ypad)
@@ -672,30 +672,21 @@ class ephysTool(tk.Frame):
     def samplerateChange(self,*args):
         print('sample rate changed.')
 
-    # def pseudoCamera(self):
-    #     image_path = "C:/Users/mgonzalez91/Dropbox (GaTech)/Research/All Things Emory !/pythonOpticalEphys repo/repo/pythonOpticalEphys/"
-    #     file_list = [f for f in listdir(image_path) if isfile(join(image_path, f)) & f.endswith(".tif")]
-    #     for tif in file_list:
-    #         self.raw_tif = np.array(Image.open(join(image_path,tif)).convert('L').resize((wid,hei)))
-    #         self.display_tif = ImageTk.PhotoImage(image=Image.fromarray(self.raw_tif))
-    #         self.camera_canvas.itemconfig(self.viewport,image=self.display_tif)
-    #         time.sleep(.5)
-
     def refreshCamera(self):
         self.my_image_number += 1
 
         if self.my_image_number == len(self.my_images):
             self.my_image_number = 0
 
-        self.raw_tif = np.array(Image.open(join(ROOT_PATH,self.my_images[self.my_image_number])).convert('L').resize((wid,hei)))
+        self.raw_tif = np.array(Image.open(join(ROOT_PATH,'images',self.my_images[self.my_image_number])).convert('L').resize((wid,hei)))
         self.img = ImageTk.PhotoImage(image=Image.fromarray(self.raw_tif))
         self.camera_canvas.itemconfig(self.viewport,image=self.img)
 
-        # self.cameraPower()
+        # self.idFluorescentCells()
 
-    def cameraPower(self,*args): 
+    def idFluorescentCells(self,*args): 
         color_num = 200
-        self.raw_tif = np.array(Image.open(join(ROOT_PATH,self.my_images[self.my_image_number])).convert('L').resize((wid,hei)))
+        self.raw_tif = np.array(Image.open(join(ROOT_PATH,'images',self.my_images[self.my_image_number])).convert('L').resize((wid,hei)))
         
         row,col = self.raw_tif.shape
         raw_image = self.raw_tif
@@ -955,10 +946,9 @@ root.mainloop()
     - load default settings
 
     TODO: WITH SUTTER
-    - move to position
 
     TODO: OPTICAL EPHYS
-    - read tif files with button 
+    - read image files with button 
     - auto all mode: detect cells and populate list
     - auto select mode: detect cells, select ones to test. 
     - manual mode: draw cells (click centroid, slide control to change diam.)
@@ -966,6 +956,7 @@ root.mainloop()
 
     FINISHED: 
     - get position
+    - move to position
     - does driver from github work? yes! wooo
     - load available COM ports and import to control list
     - set locations
