@@ -660,6 +660,7 @@ class ephysTool(tk.Frame):
 #       Define GUI Functions
 
     def validate(self, new_text):
+        # PURPOSE: ensure that the input to a control is a number (otherwise will not accept)
         if not new_text: # the field is being cleared
             self.entered_number = 0
             return True
@@ -670,9 +671,11 @@ class ephysTool(tk.Frame):
             return False
 
     def samplerateChange(self,*args):
+        # PURPOSE: Once the camera is working, this will change the sample rate of the viewport
         print('sample rate changed.')
 
     def refreshCamera(self):
+        # PURPOSE: Changes the image in the pseudo-viewport. Once the camera is working, this can go away
         self.my_image_number += 1
 
         if self.my_image_number == len(self.my_images):
@@ -685,6 +688,7 @@ class ephysTool(tk.Frame):
         # self.idFluorescentCells()
 
     def idFluorescentCells(self,*args): 
+        # PURPOSE: If button is pressed, identify fluorescent cells in the image. Once camera is set up, make sure to change image to camera's image. 
         color_num = 200
         self.raw_tif = np.array(Image.open(join(ROOT_PATH,'images',self.my_images[self.my_image_number])).convert('L').resize((wid,hei)))
         
@@ -725,14 +729,8 @@ class ephysTool(tk.Frame):
         # self.camera_canvas.delete(self.viewport)
         self.camera_canvas.itemconfig(self.viewport,image=self.img)
 
-    def modeChange(self, *args):
-        # Set up plot axes
-        self.ax = self.fig.add_subplot(111)
-        self.ax.clear()
-        self.ax.set_ylabel('Firing Frequency [Hz]')
-        self.ax.set_xlabel('Current Density [pA/pF]')
-
     def goToLocation(self,loc):
+        #PURPOSE: move the manipulator to a location
         if loc == sample_num:
             self.status.set('Moving to sample')
             # moveStr = 
@@ -749,7 +747,7 @@ class ephysTool(tk.Frame):
             
         self.sutter.Move2Pos(moveStr)
     def setLocation(self,loc):
-        # get location from controller and convert to array of bytes
+        # PURPOSE: get location from controller and convert to array of bytes
         cmdStr = self.sutter.CurrentPos() # full command string sent to controller
         cmdByteStr = bytearray(cmdStr) # split into bytes for easy indexing
         driveNum = cmdByteStr[0]
@@ -780,6 +778,7 @@ class ephysTool(tk.Frame):
             self.cleanbath_z_value.set(z_micron)
         
     def saveLocations(self):
+        #PURPOSE: save the locations in the window as a csv for loading later on
         above = np.array((self.abovebath_x_value.get(),self.abovebath_y_value.get(),self.abovebath_z_value.get()),dtype='int32')
         clean = np.array((self.cleanbath_x_value.get(),self.cleanbath_y_value.get(),self.cleanbath_z_value.get()),dtype='int32')
         wash = np.array((self.washbath_x_value.get(),self.washbath_y_value.get(),self.washbath_z_value.get()),dtype='int32')
@@ -795,6 +794,7 @@ class ephysTool(tk.Frame):
             return
     
     def loadLocations(self):
+        # PURPOSE: load locations from a csv
         f = filedialog.askopenfilename(title='Select locations file',filetypes=[('Comma separated variable', 'csv')],defaultextension='.csv')
         contents = np.genfromtxt(f,delimiter=',')
         self.abovebath_x_value.set(int(contents[0][0]))
@@ -810,6 +810,7 @@ class ephysTool(tk.Frame):
         self.washbath_z_value.set(int(contents[2][2]))
     
     def updateProtocolDisplay(self,protocol_type):
+        #PURPOSE: updates the protocol display with new values
         if protocol_type == 'clean':
             # Clear display
             self.clean_time_display.delete(1.0,tk.END)
@@ -834,6 +835,7 @@ class ephysTool(tk.Frame):
                 self.wash_pres_display.insert(tk.INSERT,str(p)+"\n")
 
     def setProtocol(self,time,pres,protocol_type):
+        # PURPOSE: saves the inputs from the user to a variable
         if protocol_type == 'clean':
             self.clean_time_value = time
             self.clean_pres_value = pres
@@ -843,6 +845,7 @@ class ephysTool(tk.Frame):
             self.wash_pres_value = pres
         
     def loadProtocol(self,protocol_type):
+        # PURPOSE: loads cleaning/washing protocol from csv 
         # Read file and parse
         name = filedialog.askopenfilename(title='Select protocol file',filetypes=[('Comma separated variable', 'csv')],defaultextension='.csv')
         f = open(name,"r")
@@ -863,7 +866,8 @@ class ephysTool(tk.Frame):
         # Update display
         self.updateProtocolDisplay(protocol_type)
     
-    def updateProtocolValue(self,protocol_type): # call this whenever user changes input 
+    def updateProtocolValue(self,protocol_type): 
+        # PURPOSE: whenever user changes protocol, update its variable
         if protocol_type == 'clean':
             self.clean_time_value = re.sub("\n",",",self.clean_time_display.get(1.0,tk.END)) + "\n"
             self.clean_pres_value = re.sub("\n",",",self.clean_pres_display.get(1.0,tk.END)) + "\n"
@@ -872,6 +876,7 @@ class ephysTool(tk.Frame):
             self.wash_pres_value = re.sub("\n",",",self.wash_pres_display.get(1.0,tk.END)) + "\n"
         
     def saveProtocol(self,protocol_type):
+        #PURPOSE: save the wash/clean protocol as a csv
         if protocol_type == 'clean':
             self.updateProtocolValue('clean')
             temptime = self.clean_time_value
@@ -894,6 +899,7 @@ class ephysTool(tk.Frame):
             f.close()
 
     def cleanPipette(self):
+        # PURPOSE: do the cleaning protocol 
         showinfo("Ready?",'Make sure that the pipette is at a safe location above the sample. Then press OK.')
 
         self.status.set('Initializing cleaning protocol...')
@@ -910,27 +916,21 @@ class ephysTool(tk.Frame):
         self.done_indicator.configure(background='green2')
 
     def stopCleaning(self):
+        # PURPOSE: Stop everything (like estop)
         self.done_indicator.configure(background='red')
         self.done_indicator.configure(text='USER STOPPED')
 
     def popup_help(self):
+        # Was going to make the help info a popup but I like it better as a tab because we have more real estate there.
+        # This could be used for something else though. 
         showinfo("Help", instruction_text)
 
     def popup_save(self,saved):
+        # PURPOSE: let user know that the data was or was not saved successfully. 
         if saved == False:
             showwarning("Warning","Data was not saved.")
         else:
             showinfo("Save Successful", self.save_text)
-
-    def validate(self, new_text):
-        if not new_text: # the field is being cleared
-            self.entered_number = 0
-            return True
-        try:
-            self.entered_number = int(new_text)
-            return True
-        except ValueError:
-            return False
     
 root = tk.Tk()
 root.geometry("1000x700+500+50") #width x height + x and y screen dims
